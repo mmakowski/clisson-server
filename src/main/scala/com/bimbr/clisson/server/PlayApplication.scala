@@ -1,7 +1,7 @@
 package com.bimbr.clisson.server
 
 import com.typesafe.play.mini.{ POST, GET, Path, Application }
-import play.api.mvc.{ Action, AsyncResult, AnyContent, Request }
+import play.api.mvc.{ Action, AsyncResult, AnyContent, Request, Result }
 import play.api.mvc.Results._
 import play.api.libs.concurrent._
 import play.api.data._
@@ -13,13 +13,25 @@ import akka.actor.{ ActorSystem, Props, Actor }
 
 import com.bimbr.clisson.protocol.Event
 import com.bimbr.clisson.protocol.Types.classFor
+import com.bimbr.clisson.server.database.{ Insert }
+import com.bimbr.clisson.server.database.hsqldb.HsqldbDatabase
 
+/**
+ * The central point of the HTTP API.
+ * 
+ * @author mmakowski
+ * @since 1.0.0
+ */
 object PlayApplication extends Application {
   private val system = ActorSystem("clissonServer");
   implicit val timeout = Timeout(1000 milliseconds)
   private val EventPattern = """/event/(\w+)""".r 
   private val deserialiser = new Deserialiser
+  private val database = system.actorOf(databaseActorType)
   
+  /**
+   * Defines how HTTP requests to different paths are handled.
+   */
   def route = {
     case POST(Path(EventPattern(eventType))) => Action(request => addEvent(request, eventType))
   }
@@ -36,8 +48,12 @@ object PlayApplication extends Application {
   
   private def deserialise[T](cls: Class[T], json: String) = deserialiser deserialise (cls, json)
   
-  private def persist(e: Either[Event, Exception]) = e match {
-    case Left(event) => println("TODO: persist " + event); Accepted
+  private def persist(e: Either[Event, Exception]): Result = e match {
+    case Left(event) => persist(event); Accepted
     case Right(exc)  => BadRequest(exc.getMessage)
   }
+  
+  private def persist(event: Event): Unit = database ! Insert(event) 
+    
+  private def databaseActorType = Props[HsqldbDatabase]
 }
