@@ -1,16 +1,18 @@
-package com.bimbr.clisson.server.database.hsqldb
+package com.bimbr.clisson.server.database
+
+import com.bimbr.clisson.protocol._
 
 import akka.actor.Actor
-import com.bimbr.clisson.protocol._
-import com.bimbr.clisson.server.database._
 
 /**
- * A database actor that uses HSQLDB as the database backend.
+ * An actor that handles interaction with the database.
  * 
  * @author mmakowski
  * @since 1.0.0
  */
-class HsqldbDatabase extends Actor {
+class Database[C <: Connection](val connector: Connector[C]) extends Actor {
+  private val conn = connector.connect()
+  
   def receive = {
     case Insert(obj) => insert(obj)
   }

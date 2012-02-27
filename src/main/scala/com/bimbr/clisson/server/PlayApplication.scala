@@ -13,8 +13,7 @@ import akka.actor.{ ActorSystem, Props, Actor }
 
 import com.bimbr.clisson.protocol.Event
 import com.bimbr.clisson.protocol.Types.classFor
-import com.bimbr.clisson.server.database.{ Insert }
-import com.bimbr.clisson.server.database.hsqldb.HsqldbDatabase
+import com.bimbr.clisson.server.database.{ Database, Insert }
 
 /**
  * The central point of the HTTP API.
@@ -33,7 +32,7 @@ object PlayApplication extends Application {
    * Defines how HTTP requests to different paths are handled.
    */
   def route = {
-    case POST(Path(EventPattern(eventType))) => Action(request => addEvent(request, eventType))
+    case POST(Path(EventPattern(eventType))) => Action(addEvent(_, eventType))
   }
 
   private def addEvent(implicit request: Request[AnyContent], eventType: String) = try {
@@ -55,5 +54,5 @@ object PlayApplication extends Application {
   
   private def persist(event: Event): Unit = database ! Insert(event) 
     
-  private def databaseActorType = Props[HsqldbDatabase]
+  private def databaseActorType = Props(new Database(new com.bimbr.clisson.server.database.h2.H2Connector))
 }
