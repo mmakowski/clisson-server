@@ -18,7 +18,7 @@ class Database(val connector: Connector) extends Actor {
   }
   
   private def insert(obj: StandaloneObject) = obj match {
-    case checkpoint: Checkpoint => println("TODO: insert checkpoint " + checkpoint)
+    case checkpoint: Checkpoint => conn insertCheckpoint checkpoint
     case _                      => println("TODO: log error")
   }
 }
