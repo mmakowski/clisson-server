@@ -5,8 +5,8 @@ import com.bimbr.clisson.protocol._
 /**
  * Interface for objects that create database connections.
  */
-trait Connector[C <: Connection] {
-  def connect(): C
+trait Connector {
+  def connect(): Connection
 }
 
 /**

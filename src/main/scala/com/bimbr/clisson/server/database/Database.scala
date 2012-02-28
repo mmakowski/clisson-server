@@ -10,7 +10,7 @@ import akka.actor.Actor
  * @author mmakowski
  * @since 1.0.0
  */
-class Database[C <: Connection](val connector: Connector[C]) extends Actor {
+class Database(val connector: Connector) extends Actor {
   private val conn = connector.connect()
   
   def receive = {
