@@ -32,8 +32,32 @@ private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection
   if (!isInitialised) initialise()
   // TODO: upgrade schema if required
 
-  def getTrail(messageId: String) = {
-    Some(new Trail(MMap[JLong, Event](), MMap[JLong, JSet[JLong]](), MSet[JLong]()))
+  def getTrail(externalMessageId: String) = {
+    val select = conn prepareStatement SelectEventsForExternalId
+    select setString (1, externalMessageId)
+    val result = select.executeQuery()
+    val events = MMap[JLong, Event]()
+    val eventGraph = MMap[JLong, JSet[JLong]]()
+    val initialEventIds = MSet[JLong]()
+    while (result.next) {
+      // TODO: source, event type
+      val eventId     = result getLong   1
+      val timestamp   = result getDate   2
+      val priority    = result getInt    3
+      val description = result getString 4
+      val messageId   = result getString 5
+      val messageRole = result getByte   6
+      
+      if (initialEventIds isEmpty) initialEventIds += eventId
+      val event = eventFrom(timestamp, 
+                            priority, 
+                            if (description == null) "" else description,
+                            messageId,
+                            messageRole)
+      events += ((eventId, event))
+      // TODO: event graph
+    }
+    if (events isEmpty) None else Some(new Trail(events, eventGraph, initialEventIds))
   }
   
   def insertCheckpoint(checkpoint: Checkpoint) = {
@@ -43,6 +67,13 @@ private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection
     conn.commit()
   }
 
+  private def eventFrom(timestamp:   java.util.Date,
+                        priority:    Int,
+                        description: String,
+                        messageId:   String,
+                        messageRole: Byte) =
+    new Checkpoint(new EventHeader("TODO", timestamp, priority), messageId, description)
+  
   private def getOrInsertMessageId(externalId: String) = {
     val select = conn prepareStatement SelectMessageId 
     select setString (1, externalId)

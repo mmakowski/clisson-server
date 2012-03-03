@@ -35,15 +35,15 @@ object PlayApplication extends Application {
    * Defines how HTTP requests to different paths are handled.
    */
   def route = {
-    case GET(Path(Trail(messageId)))  => Action(findTrail(_, messageId))
-    case POST(Path(Event(eventType))) => Action(addEvent(_, eventType))
+    case GET  (Path(Trail(messageId))) => Action(findTrail(_, messageId))
+    case POST (Path(Event(eventType))) => Action(addEvent(_, eventType))
   }
 
   // TODO: AsyncResult instead of blocking on Await.result
   private def findTrail(implicit request: Request[AnyContent], messageId: String) =
     Await.result(database ? GetTrail(messageId), timeout.duration).asInstanceOf[Option[Trail]] match {
       case Some(t) => Ok(serialise(t)) 
-      case None    => BadRequest("trail for " + messageId + " not found")
+      case None    => NotFound("trail for " + messageId + " not found")
     }
   
   private def addEvent(implicit request: Request[AnyContent], eventType: String) = try {

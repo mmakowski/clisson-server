@@ -10,9 +10,10 @@ private[h2] object SQL {
 -- events
 create sequence event_id_seq;
 create table events (
-  event_id  BIGINT    not null,
-  timestamp TIMESTAMP not null,
-  priority  INT       not null,
+  event_id    BIGINT    not null,
+  -- TODO: source
+  timestamp   TIMESTAMP not null,
+  priority    INT       not null,
   description VARCHAR,
   -- constraints
   primary key (event_id)
@@ -72,4 +73,24 @@ insert into metadata (key, value) values ('schema.version', '0.1.0');
   val InsertMessageId = """insert into message_ids (external_id, message_id) values (?, ?);"""
     
   val InsertEventMessage = """insert into event_messages (event_id, message_id, message_role) values (?, ?, ?);"""
+    
+  // FIXME: this will be a mess once we have more than 1 external id
+  val SelectEventsForExternalId = """
+select e.event_id
+     , e.timestamp
+     , e.priority
+     , e.description
+     , m.external_id
+     , em.message_role
+from message_ids msrc
+   , event_messages emsrc
+   , events e
+   , event_messages em
+   , message_ids m
+where msrc.external_id = ?
+  and msrc.message_id  = emsrc.message_id
+  and emsrc.event_id   = e.event_id
+  and e.event_id       = em.event_id
+  and em.message_id    = m.message_id  
+"""
 }
