@@ -14,7 +14,8 @@ class Database(val connector: Connector) extends Actor {
   private val conn = connector.connect()
   
   def receive = {
-    case Insert(obj) => insert(obj)
+    case Insert(obj)     => insert(obj)
+    case GetTrail(msgId) => sender ! (conn getTrail msgId)
   }
   
   private def insert(obj: StandaloneObject) = obj match {

@@ -10,10 +10,12 @@ import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.duration._
 import akka.actor.{ ActorSystem, Props, Actor }
+import akka.dispatch.{ Await, Future }
 
-import com.bimbr.clisson.protocol.Event
+import com.bimbr.clisson.protocol.{ Event, Trail }
+import com.bimbr.clisson.protocol.Json.jsonFor
 import com.bimbr.clisson.protocol.Types.classFor
-import com.bimbr.clisson.server.database.{ Database, Insert }
+import com.bimbr.clisson.server.database.{ Database, Insert, GetTrail }
 
 /**
  * The central point of the HTTP API.
@@ -23,8 +25,9 @@ import com.bimbr.clisson.server.database.{ Database, Insert }
  */
 object PlayApplication extends Application {
   private val system = ActorSystem("clissonServer");
-  implicit val timeout = Timeout(1000 milliseconds)
-  private val EventPattern = """/event/(\w+)""".r 
+  implicit val timeout = Timeout(10000 milliseconds)
+  private val Event = """/event/(\w+)""".r
+  private val Trail = """/trail/(.+)""".r
   private val deserialiser = new Deserialiser
   private val database = system.actorOf(databaseActorType)
   
@@ -32,9 +35,17 @@ object PlayApplication extends Application {
    * Defines how HTTP requests to different paths are handled.
    */
   def route = {
-    case POST(Path(EventPattern(eventType))) => Action(addEvent(_, eventType))
+    case GET(Path(Trail(messageId)))  => Action(findTrail(_, messageId))
+    case POST(Path(Event(eventType))) => Action(addEvent(_, eventType))
   }
 
+  // TODO: AsyncResult instead of blocking on Await.result
+  private def findTrail(implicit request: Request[AnyContent], messageId: String) =
+    Await.result(database ? GetTrail(messageId), timeout.duration).asInstanceOf[Option[Trail]] match {
+      case Some(t) => Ok(serialise(t)) 
+      case None    => BadRequest("trail for " + messageId + " not found")
+    }
+  
   private def addEvent(implicit request: Request[AnyContent], eventType: String) = try {
     val cls = classFor(eventType).asInstanceOf[Class[Event]]
     request.body.asText match {
@@ -44,6 +55,8 @@ object PlayApplication extends Application {
   } catch {
     case e: Exception => BadRequest(e.getMessage)
   }
+  
+  private def serialise[T](obj: T) = jsonFor(obj)
   
   private def deserialise[T](cls: Class[T], json: String) = deserialiser deserialise (cls, json)
   

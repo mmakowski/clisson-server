@@ -16,6 +16,7 @@ trait Connector {
  * @since 1.0.0
  */
 trait Connection {
+  def getTrail(messageId: String): Option[Trail]
   def insertCheckpoint(checkpoint: Checkpoint): Unit
 }
 

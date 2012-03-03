@@ -1,10 +1,17 @@
 package com.bimbr.clisson.server.database.h2
 
+import java.lang.{ Long => JLong }
+import java.sql.{ DriverManager, PreparedStatement }
+import java.util.{ Set => JSet }
+import scala.collection.JavaConversions._
+import scala.collection.mutable.{ Map => MMap, Set => MSet }
+
 import akka.actor.Actor
-import java.sql.DriverManager
+
 import com.bimbr.clisson.protocol._
 import com.bimbr.clisson.server.database._
-import java.sql.PreparedStatement
+
+
 
 /**
  * A connector for H2 database.
@@ -24,6 +31,10 @@ private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection
   
   if (!isInitialised) initialise()
   // TODO: upgrade schema if required
+
+  def getTrail(messageId: String) = {
+    Some(new Trail(MMap[JLong, Event](), MMap[JLong, JSet[JLong]](), MSet[JLong]()))
+  }
   
   def insertCheckpoint(checkpoint: Checkpoint) = {
     val msgId = getOrInsertMessageId(checkpoint getMessageId)
