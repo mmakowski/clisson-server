@@ -1,22 +1,39 @@
 package com.bimbr.clisson.server.database.h2
 
+/**
+ * All SQL statements executed against H2 database.
+ * 
+ * @author mmakowski
+ * @since 1.0.0
+ */
 private[h2] object SQL {
-  import Constants._ 
+  import EventTypes._ 
+  import MessageRoles._ 
  
   val InitialisedCheck = "select * from metadata;"
   
   val InitDdl = """
-    
+
+-- event types
+create table event_types (
+  type_id   TINYINT     not null,
+  type_name VARCHAR(16) not null,
+  -- constraints
+  primary key (type_id)
+);
+
 -- events
 create sequence event_id_seq;
 create table events (
-  event_id    BIGINT    not null,
-  -- TODO: source
-  timestamp   TIMESTAMP not null,
-  priority    INT       not null,
+  event_id    BIGINT      not null,
+  source      VARCHAR(64) not null,
+  timestamp   TIMESTAMP   not null,
+  priority    INT         not null,
+  type        TINYINT     not null,
   description VARCHAR,
   -- constraints
-  primary key (event_id)
+  primary key (event_id),
+  foreign key (type) references event_types (type_id) on delete cascade
 );
 
 -- messages
@@ -33,7 +50,7 @@ create table message_roles (
   role_id     TINYINT     not null,
   description VARCHAR(64) not null,
   -- constraints
-  primary key (role_id),
+  primary key (role_id)
 );
 
 -- message ids corresponding to events
@@ -57,14 +74,17 @@ create table metadata (
   
   val InitDml = """
 -- message roles
-insert into message_roles (role_id, description) values (""" + CheckpointMsg + """, 'the message that passed through the checkpoint');
-insert into message_roles (role_id, description) values (""" + SourceMsg + """, 'the source message of a transformation');
-insert into message_roles (role_id, description) values (""" + ResultMsg + """, 'the result message of a transformation');
+insert into event_types (type_id, type_name) values (""" + Checkpoint + """, '""" + typeName(Checkpoint) + """');
+insert into event_types (type_id, type_name) values (""" + Split + """, '""" + typeName(Split) + """');
+insert into event_types (type_id, type_name) values (""" + Join + """, '""" + typeName(Join) + """');
+insert into message_roles (role_id, description) values (""" + CheckpointMsg + """, 'a message that passed through the checkpoint');
+insert into message_roles (role_id, description) values (""" + SourceMsg + """, 'a source message of a transformation');
+insert into message_roles (role_id, description) values (""" + ResultMsg + """, 'a result message of a transformation');
 insert into metadata (key, value) values ('schema.version', '0.1.0');
 """
   val SelectNextEventId = """select nextval('event_id_seq') from dual;""" 
 
-  val InsertEvent = """insert into events (event_id, timestamp, priority, description) values (?, ?, ?, ?);"""
+  val InsertEvent = """insert into events (event_id, source, timestamp, priority, type, description) values (?, ?, ?, ?, ?, ?);"""
   
   val SelectNextMessageId = """select nextval('message_id_seq') from dual;"""
     
@@ -77,8 +97,10 @@ insert into metadata (key, value) values ('schema.version', '0.1.0');
   // FIXME: this will be a mess once we have more than 1 external id
   val SelectEventsForExternalId = """
 select e.event_id
+     , e.source
      , e.timestamp
      , e.priority
+     , e.type
      , e.description
      , m.external_id
      , em.message_role

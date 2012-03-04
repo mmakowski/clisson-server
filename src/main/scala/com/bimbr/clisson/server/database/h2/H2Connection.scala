@@ -2,7 +2,7 @@ package com.bimbr.clisson.server.database.h2
 
 import java.lang.{ Long => JLong }
 import java.sql.{ DriverManager, PreparedStatement }
-import java.util.{ Set => JSet }
+import java.util.{ Date, Set => JSet }
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ Map => MMap, Set => MSet }
 
@@ -27,7 +27,7 @@ class H2Connector extends Connector {
 
 private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection {
   import SQL._
-  import Constants._
+  import MessageRoles._
   
   if (!isInitialised) initialise()
   // TODO: upgrade schema if required
@@ -40,39 +40,45 @@ private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection
     val eventGraph = MMap[JLong, JSet[JLong]]()
     val initialEventIds = MSet[JLong]()
     while (result.next) {
-      // TODO: source, event type
-      val eventId     = result getLong   1
-      val timestamp   = result getDate   2
-      val priority    = result getInt    3
-      val description = result getString 4
-      val messageId   = result getString 5
-      val messageRole = result getByte   6
+      val eventId     = result getLong      1
+      val source      = result getString    2
+      val timestamp   = result getTimestamp 3
+      val priority    = result getInt       4
+      val typeId      = result getByte      5
+      val description = result getString    6
+      val messageId   = result getString    7
+      val messageRole = result getByte      8
       
-      if (initialEventIds isEmpty) initialEventIds += eventId
-      val event = eventFrom(timestamp, 
-                            priority, 
-                            if (description == null) "" else description,
-                            messageId,
-                            messageRole)
+      if (initialEventIds isEmpty) initialEventIds += eventId // naive for now
+      val event = eventFrom(source, timestamp, priority, typeId, if (description == null) "" else description, messageId, messageRole)
       events += ((eventId, event))
       // TODO: event graph
     }
-    if (events isEmpty) None else Some(new Trail(events, eventGraph, initialEventIds))
+    
+    if (events isEmpty) None 
+    else Some(new Trail(events, eventGraph, initialEventIds))
   }
   
   def insertCheckpoint(checkpoint: Checkpoint) = {
     val msgId = getOrInsertMessageId(checkpoint getMessageId)
-    val eventId = insertEvent(checkpoint.getEventHeader, checkpoint.getDescription)
+    val eventId = insertEvent(checkpoint.getEventHeader, EventTypes.Checkpoint, checkpoint.getDescription)
     insertEventMessage(eventId, msgId, CheckpointMsg)
     conn.commit()
   }
 
-  private def eventFrom(timestamp:   java.util.Date,
+  private def eventFrom(source:      String,
+                        timestamp:   Date,
                         priority:    Int,
+                        typeId:      Byte,
                         description: String,
                         messageId:   String,
-                        messageRole: Byte) =
-    new Checkpoint(new EventHeader("TODO", timestamp, priority), messageId, description)
+                        messageRole: Byte) = {
+    val header = new EventHeader(source, timestamp, priority)
+    typeId match {
+      case EventTypes.Checkpoint => new Checkpoint(header, messageId, description)
+      case _                     => throw new IllegalStateException("unsupported event type: " + typeId)
+    }
+  }
   
   private def getOrInsertMessageId(externalId: String) = {
     val select = conn prepareStatement SelectMessageId 
@@ -92,14 +98,16 @@ private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection
     msgId
   }
 
-  private def insertEvent(header: EventHeader, description: String) = {
+  private def insertEvent(header: EventHeader, typeId: Byte, description: String) = {
     val eventId = getNextSequenceValue(SelectNextEventId)
     
     val eventInsert = conn prepareStatement InsertEvent
-    eventInsert setLong   (1, eventId)
-    eventInsert setDate   (2, new java.sql.Date(header.getTimestamp.getTime))
-    eventInsert setInt    (3, header.getPriority)
-    eventInsert setString (4, description)
+    eventInsert setLong      (1, eventId)
+    eventInsert setString    (2, header.getSourceId)
+    eventInsert setTimestamp (3, new java.sql.Timestamp(header.getTimestamp.getTime))
+    eventInsert setInt       (4, header.getPriority)
+    eventInsert setByte      (5, typeId)
+    eventInsert setString    (6, description)
     eventInsert.execute()
     
     eventId
@@ -128,7 +136,10 @@ private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection
   }
   
   private def initialise() = {
+    // TODO: log instead of println
+    println("running database initialisation DDL...")
     execute(InitDdl) 
+    println("running database initialisation DML...")
     execute(InitDml)
   }
   
