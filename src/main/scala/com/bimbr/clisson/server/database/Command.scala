@@ -9,5 +9,11 @@ import com.bimbr.clisson.protocol.StandaloneObject
  * @since 1.0.0
  */
 sealed trait Command
+/**
+ * @since 1.0.0
+ */
 case class Insert[T <: StandaloneObject](obj: T) extends Command
+/**
+ * @since 1.0.0
+ */
 case class GetTrail(messageId: String) extends Command

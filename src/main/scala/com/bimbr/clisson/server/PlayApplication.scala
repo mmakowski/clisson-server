@@ -26,7 +26,7 @@ import com.bimbr.clisson.server.database.{ Database, Insert, GetTrail }
 object PlayApplication extends Application {
   private val system = ActorSystem("clissonServer");
   implicit val timeout = Timeout(10000 milliseconds)
-  private val Event = """/event/(\w+)""".r
+  private val Event = """/event"""
   private val Trail = """/trail/(.+)""".r
   private val deserialiser = new Deserialiser
   private val database = system.actorOf(databaseActorType)
@@ -36,7 +36,7 @@ object PlayApplication extends Application {
    */
   def route = {
     case GET  (Path(Trail(messageId))) => Action(findTrail(_, messageId))
-    case POST (Path(Event(eventType))) => Action(addEvent(_, eventType))
+    case POST (Path(Event))            => Action(addEvent(_))
   }
 
   // TODO: AsyncResult instead of blocking on Await.result
@@ -46,11 +46,10 @@ object PlayApplication extends Application {
       case None    => NotFound("trail for " + messageId + " not found")
     }
   
-  private def addEvent(implicit request: Request[AnyContent], eventType: String) = try {
-    val cls = classFor(eventType).asInstanceOf[Class[Event]]
+  private def addEvent(implicit request: Request[AnyContent]) = try {
     request.body.asText match {
-      case Some(json) => persist(deserialise(cls, json))
-      case None       => BadRequest("the request body was empty; expected JSON of " + eventType)
+      case Some(json) => persist(deserialise(classOf[Event], json))
+      case None       => BadRequest("the request body was empty; expected JSON of Event")
     }
   } catch {
     case e: Exception => BadRequest(e.getMessage)
