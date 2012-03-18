@@ -21,6 +21,8 @@ libraryDependencies ++= Seq(
   "org.scalaz"        %% "scalaz-core"      % "6.0.4",
   "com.bimbr"          % "clisson-client"   % "0.1.0-SNAPSHOT" % "test",  
   "junit"              % "junit"            % "4.10"           % "test", 
+  "log4j"              % "log4j"            % "1.2.16"         % "test",
+  "org.slf4j"          % "slf4j-api"        % "1.6.4"          % "test",
   "org.specs2"        %% "specs2"           % "1.8.2"          % "test"
 )
 

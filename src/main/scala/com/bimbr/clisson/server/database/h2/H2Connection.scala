@@ -5,15 +5,11 @@ import java.sql.{ DriverManager, PreparedStatement }
 import java.util.{ Date, Set => JSet }
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ Map => MMap, Set => MSet }
-
 import akka.actor.Actor
-
 import scalaz._
-
 import com.bimbr.clisson.protocol._
 import com.bimbr.clisson.server.database._
 import com.bimbr.clisson.server.config.Config
-
 
 
 /**
@@ -29,7 +25,13 @@ class H2Connector(config: Config) extends Connector {
   
   def connect() = (for {
     dbPath <- validation(config(DbPathProperty).toRight(DbPathProperty + " is not defined in " + config))
-  } yield new H2Connection(DriverManager.getConnection("jdbc:h2:" + dbPath, "sa", ""))).either
+  } yield newH2Connection(dbPath)).either
+  
+  // TODO: use Akka LoggingAdapter?
+  private def newH2Connection(dbPath: String): H2Connection = {
+    println("creating H2 connection to database at " + dbPath)
+    new H2Connection(DriverManager.getConnection("jdbc:h2:" + dbPath, "sa", ""))
+  }
 }
 
 // TODO: a lot of cleanup required: closing statements, style
