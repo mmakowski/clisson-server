@@ -11,11 +11,11 @@ import akka.util.Timeout
 import akka.util.duration._
 import akka.actor.{ ActorSystem, Props, Actor }
 import akka.dispatch.{ Await, Future }
-
 import com.bimbr.clisson.protocol.{ Event, Trail }
 import com.bimbr.clisson.protocol.Json.jsonFor
 import com.bimbr.clisson.protocol.Types.classFor
 import com.bimbr.clisson.server.database.{ Database, Insert, GetTrail }
+import com.bimbr.clisson.server.config.Config
 
 /**
  * The central point of the HTTP API.
@@ -24,6 +24,7 @@ import com.bimbr.clisson.server.database.{ Database, Insert, GetTrail }
  * @since 1.0.0
  */
 object PlayApplication extends Application {
+  private lazy val config = loadConfig()
   private val system = ActorSystem("clissonServer");
   implicit val timeout = Timeout(10000 milliseconds)
   private val Event = """/event"""
@@ -66,5 +67,13 @@ object PlayApplication extends Application {
   
   private def persist(event: Event): Unit = database ! Insert(event) 
     
-  private def databaseActorType = Props(new Database(new com.bimbr.clisson.server.database.h2.H2Connector))
+  private def databaseActorType = Props(new Database(new com.bimbr.clisson.server.database.h2.H2Connector(config)))
+  
+  private def loadConfig(): Config = {
+    val fileName = Option(System.getProperty("config")).getOrElse("clisson-server.properties")
+    Config.fromPropertiesFile(fileName) match {
+      case Left(msg)  => throw new IllegalStateException(msg)
+      case Right(cfg) => cfg
+    }
+  } 
 }

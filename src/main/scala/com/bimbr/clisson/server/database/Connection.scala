@@ -6,7 +6,11 @@ import com.bimbr.clisson.protocol._
  * Interface for objects that create database connections.
  */
 trait Connector {
-  def connect(): Connection
+  /**
+   * @return Left(errorMessage) if connection was unsuccesful; Right(connection) otherwise
+   * @since 1.0.0
+   */
+  def connect(): Either[String, Connection]
 }
 
 /**

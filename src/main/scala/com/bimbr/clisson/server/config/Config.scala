@@ -10,8 +10,9 @@ import scalaz._
  * @author mmakowski
  * @since 1.0.0
  */
-class Config(val properties: Properties) {
-  def apply(propertyKey: String): Option[String] = Option(properties.getProperty(propertyKey)) 
+class Config(val properties: Properties, val fileName: String) {
+  def apply(propertyKey: String): Option[String] = Option(properties.getProperty(propertyKey))
+  override def toString(): String = "server config loaded from " + fileName 
 }
 
 /**
@@ -31,7 +32,7 @@ object Config {
     for {
       stream <- streamFromClasspath(fileName)
       props  <- propertiesFromStream(stream)
-    } yield new Config(props)
+    } yield new Config(props, fileName)
   }.either
   
   private def streamFromClasspath(fileName: String): Validation[String, InputStream] = 

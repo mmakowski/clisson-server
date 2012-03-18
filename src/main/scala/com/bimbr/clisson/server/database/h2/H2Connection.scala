@@ -8,8 +8,11 @@ import scala.collection.mutable.{ Map => MMap, Set => MSet }
 
 import akka.actor.Actor
 
+import scalaz._
+
 import com.bimbr.clisson.protocol._
 import com.bimbr.clisson.server.database._
+import com.bimbr.clisson.server.config.Config
 
 
 
@@ -19,10 +22,14 @@ import com.bimbr.clisson.server.database._
  * @author mmakowski
  * @since 1.0.0
  */
-class H2Connector extends Connector {
+class H2Connector(config: Config) extends Connector {
+  import Scalaz._
+  private val DbPathProperty = "clisson.db.path"
   Class forName ("org.h2.Driver")
-  // TODO: read from properties
-  def connect = new H2Connection(DriverManager.getConnection("jdbc:h2:~/scratch/clisson-db", "sa", ""))
+  
+  def connect() = (for {
+    dbPath <- validation(config(DbPathProperty).toRight(DbPathProperty + " is not defined in " + config))
+  } yield new H2Connection(DriverManager.getConnection("jdbc:h2:" + dbPath, "sa", ""))).either
 }
 
 // TODO: a lot of cleanup required: closing statements, style

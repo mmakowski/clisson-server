@@ -11,7 +11,10 @@ import akka.actor.Actor
  * @since 1.0.0
  */
 class Database(val connector: Connector) extends Actor {
-  private val conn = connector.connect()
+  private val conn = connector.connect() match {
+    case Left(errorMessage) => throw new RuntimeException(errorMessage)
+    case Right(conn)        => conn
+  }
   
   def receive = {
     case Insert(obj)     => insert(obj)
