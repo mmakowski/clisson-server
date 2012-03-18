@@ -6,7 +6,6 @@ import java.util.{ Date, Set => JSet }
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ Map => MMap, Set => MSet }
 import akka.actor.Actor
-import scalaz._
 import com.bimbr.clisson.protocol._
 import com.bimbr.clisson.server.database._
 import com.bimbr.clisson.server.config.Config
@@ -19,13 +18,10 @@ import com.bimbr.clisson.server.config.Config
  * @since 1.0.0
  */
 class H2Connector(config: Config) extends Connector {
-  import Scalaz._
   private val DbPathProperty = "clisson.db.path"
   Class forName ("org.h2.Driver")
   
-  def connect() = (for {
-    dbPath <- validation(config(DbPathProperty).toRight(DbPathProperty + " is not defined in " + config))
-  } yield newH2Connection(dbPath)).either
+  def connect() = config(DbPathProperty).toRight(DbPathProperty + " is not defined in " + config).fold(Left(_), p => Right(newH2Connection(p)))
   
   // TODO: use Akka LoggingAdapter?
   private def newH2Connection(dbPath: String): H2Connection = {

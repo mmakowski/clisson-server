@@ -19,7 +19,6 @@ libraryDependencies ++= Seq(
   "com.typesafe"          %% "play-mini"             % "2.0",
   "com.typesafe.akka"      % "akka-actor"            % "2.0",
   "commons-configuration"  % "commons-configuration" % "1.8",
-  "org.scalaz"            %% "scalaz-core"           % "6.0.4",
   "com.bimbr"              % "clisson-client"        % "0.1.0-SNAPSHOT" % "test",  
   "junit"                  % "junit"                 % "4.10"           % "test", 
   "log4j"                  % "log4j"                 % "1.2.16"         % "test",

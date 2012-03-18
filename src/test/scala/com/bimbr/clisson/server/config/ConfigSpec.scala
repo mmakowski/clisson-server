@@ -26,6 +26,6 @@ class ConfigSpec extends Specification {
   }
   
   def withConfig(fileName: String)(check: Config => Result): Result = 
-    Config.fromPropertiesFile("test-server.properties").fold(failure(_), check(_))
+    Config.fromPropertiesFile(fileName).fold(failure(_), check(_))
 }
 
