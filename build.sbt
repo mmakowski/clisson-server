@@ -1,3 +1,5 @@
+import AssemblyKeys._
+
 organization := "com.bimbr"
 
 name := "clisson-server"
@@ -19,7 +21,7 @@ libraryDependencies ++= Seq(
   "com.typesafe"              %% "play-mini"             % "2.0",
   "com.typesafe.akka"          % "akka-actor"            % "2.0",
   "commons-configuration"      % "commons-configuration" % "1.8",
-  "com.bimbr"                  % "clisson-client"        % "0.1.0-SNAPSHOT" % "test",  
+  "com.bimbr"                  % "clisson-client"        % "0.1.0"          % "test",  
   "junit"                      % "junit"                 % "4.10"           % "test", 
   "log4j"                      % "log4j"                 % "1.2.16"         % "test",
   "org.apache.httpcomponents"  % "httpclient"            % "4.1.3"          % "test",
@@ -29,6 +31,14 @@ libraryDependencies ++= Seq(
 
 scalacOptions += "-deprecation"
 
+// assembly doesn't currently work due to conflict between reference.conf files
+
+seq(assemblySettings: _*)
+
+mainClass in assembly := Some("com.bimbr.clisson.server.ClissonServerApp")
+
+// proguard doesn't currently work
+
 seq(ProguardPlugin.proguardSettings: _*)
 
 proguardOptions ++= Seq(
@@ -37,3 +47,7 @@ proguardOptions ++= Seq(
 )
 
 //proguardLibraryJars <++= (update) map (_.select(module = moduleFilter(name = "config")))
+
+// temporary hack to get all dependencies in one place for packaging
+
+retrieveManaged := true
