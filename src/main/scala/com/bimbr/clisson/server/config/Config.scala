@@ -3,6 +3,8 @@ package com.bimbr.clisson.server.config
 import java.io.InputStream
 import java.util.Properties
 
+import scalaz._
+
 /**
  * Provides the server configuration.
  * @author mmakowski
@@ -18,19 +20,29 @@ class Config(val properties: Properties) {
  * @since 1.0.0
  */
 object Config {
+  import Scalaz._
+  
   /**
    * Creates a Config object from the classpath file provided
    * @since 1.0.0
    */
-  def fromPropertiesFile(fileName: String): Option[Config] = 
-    Option(Thread.currentThread.getContextClassLoader.getResourceAsStream(fileName)).
-        map(propertiesFromStream).
-        map(new Config(_))
+  def fromPropertiesFile(fileName: String): Either[String, Config] = (for {
+    stream <- streamFromClasspath(fileName)
+    props  <- propertiesFromStream(stream)
+  } yield new Config(props)).either
   
-  private def propertiesFromStream(stream: InputStream): Properties = {
+  private def streamFromClasspath(fileName: String): Validation[String, InputStream] = 
+    Thread.currentThread.getContextClassLoader.getResourceAsStream(fileName) match {
+      case null   => failure("config file " + fileName + " not found in the classpath") 
+      case stream => success(stream)
+    }
+
+  private def propertiesFromStream(stream: InputStream): Validation[String, Properties] = try {
     val properties = new Properties
     properties.load(stream)
     stream.close()
-    properties
-  } 
+    success(properties)
+  } catch {
+    case e => failure(e.getMessage)
+  }
 } 

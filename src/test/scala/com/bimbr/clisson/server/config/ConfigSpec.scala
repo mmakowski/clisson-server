@@ -10,8 +10,10 @@ import org.specs2.runner.JUnitRunner
 class ConfigSpec extends Specification {
   "Config construction" should {
     "use specified properties file" in {
-      val config = Config.fromPropertiesFile("test-server.properties").get
-      config("testProperty") mustEqual Some("test value")
+      Config.fromPropertiesFile("test-server.properties").fold(
+          failure(_),
+          cfg => cfg("testProperty") mustEqual Some("test value")
+      )
     }
   }
 }
