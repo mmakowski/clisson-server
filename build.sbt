@@ -24,6 +24,8 @@ libraryDependencies ++= Seq(
   "org.specs2"               %% "specs2"           % "1.8.2"          % "test"
 )
 
+scalacOptions += "-deprecation"
+
 seq(ProguardPlugin.proguardSettings: _*)
 
 proguardOptions ++= Seq(
