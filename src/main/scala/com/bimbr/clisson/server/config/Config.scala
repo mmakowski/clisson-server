@@ -27,10 +27,12 @@ object Config {
    * @return Left(errorMessage) if an error has occurred or Right(config) if config was created succesfully
    * @since 1.0.0
    */
-  def fromPropertiesFile(fileName: String): Either[String, Config] = (for {
-    stream <- streamFromClasspath(fileName)
-    props  <- propertiesFromStream(stream)
-  } yield new Config(props)).either
+  def fromPropertiesFile(fileName: String): Either[String, Config] = {
+    for {
+      stream <- streamFromClasspath(fileName)
+      props  <- propertiesFromStream(stream)
+    } yield new Config(props)
+  }.either
   
   private def streamFromClasspath(fileName: String): Validation[String, InputStream] = 
     Thread.currentThread.getContextClassLoader.getResourceAsStream(fileName) match {

@@ -12,7 +12,7 @@ class ConfigSpec extends Specification {
     "use specified properties file" in {
       Config.fromPropertiesFile("test-server.properties").fold(
         failure(_),
-        cfg => cfg("testProperty") mustEqual Some("test value")
+        _("testProperty") mustEqual Some("test value")
       )
     }
     "report an error if specified file can't be found" in {
