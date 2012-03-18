@@ -3,6 +3,8 @@ package com.bimbr.clisson.server.config
 import java.io.InputStream
 import java.util.Properties
 
+import org.apache.commons.configuration.{ CompositeConfiguration, PropertiesConfiguration, SystemConfiguration }
+
 import scalaz._
 
 /**
@@ -10,8 +12,12 @@ import scalaz._
  * @author mmakowski
  * @since 1.0.0
  */
-class Config(val properties: Properties, val fileName: String) {
-  def apply(propertyKey: String): Option[String] = Option(properties.getProperty(propertyKey))
+class Config(properties: Properties, val fileName: String) {
+  val config = new CompositeConfiguration
+  config.addConfiguration(new SystemConfiguration)
+  config.addConfiguration(new PropertiesConfiguration(fileName))
+  
+  def apply(propertyKey: String): Option[String] = Option(config.getString(propertyKey))
   override def toString(): String = "server config loaded from " + fileName 
 }
 
