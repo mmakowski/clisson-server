@@ -12,7 +12,6 @@ private[h2] object SQL {
   val InitialisedCheck = "select * from metadata;"
   
   val InitDdl = """
-
 -- events
 create sequence event_id_seq;
 create table events (
@@ -66,6 +65,7 @@ insert into message_roles (role_id, description) values (""" + SourceMsg + """, 
 insert into message_roles (role_id, description) values (""" + ResultMsg + """, 'a result message of a transformation');
 insert into metadata (key, value) values ('schema.version', '0.1.0');
 """
+  
   val SelectNextEventId = """select nextval('event_id_seq') from dual;""" 
 
   val InsertEvent = """insert into events (event_id, source, timestamp, description) values (?, ?, ?, ?);"""
