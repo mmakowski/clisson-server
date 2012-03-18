@@ -23,7 +23,8 @@ object Config {
   import Scalaz._
   
   /**
-   * Creates a Config object from the classpath file provided
+   * Creates a Config object from the classpath file provided.
+   * @return Left(errorMessage) if an error has occurred or Right(config) if config was created succesfully
    * @since 1.0.0
    */
   def fromPropertiesFile(fileName: String): Either[String, Config] = (for {

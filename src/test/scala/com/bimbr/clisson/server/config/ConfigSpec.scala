@@ -11,9 +11,14 @@ class ConfigSpec extends Specification {
   "Config construction" should {
     "use specified properties file" in {
       Config.fromPropertiesFile("test-server.properties").fold(
-          failure(_),
-          cfg => cfg("testProperty") mustEqual Some("test value")
+        failure(_),
+        cfg => cfg("testProperty") mustEqual Some("test value")
       )
+    }
+    "report an error if specified file can't be found" in {
+      Config.fromPropertiesFile("nonexistent-server.properties") must beLeft.like {
+        case errorMessage => errorMessage must contain ("nonexistent-server.properties") 
+      }
     }
   }
 }
