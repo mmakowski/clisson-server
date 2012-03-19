@@ -6,56 +6,21 @@ import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.utils.URIUtils
 import org.apache.http.util.EntityUtils
 
-object log4jAppenderTest {
-  val ConfigFile = "integration/log4jAppender/clisson-server.properties"
-  System.setProperty("config", ConfigFile)
+object log4jAppenderTest extends IntegrationTest {
+  val serverConfig = "integration/log4jAppender/clisson-server.properties"
+  System.setProperty("config", serverConfig)
     
-  def main(args: Array[String]) = {
-    deleteDatabase()
-    val server = startServer(args)
+  def run(server: Thread) = {
     loggingApp.run()
     Thread.sleep(1000)
     checkTrail()
-    stopServer(server) 
   }
   
-  // assumes usage of H2 database
-  def deleteDatabase(): Unit = {
-    val dbBase = Config.fromPropertiesFile(ConfigFile) match {
-      case Left(msg)  => sys.error(msg) 
-      case Right(cfg) => cfg("clisson.db.path").get
-    }
-    deleteIfExists(dbBase + ".h2.db")
-    deleteIfExists(dbBase + ".trace.db")
-  }
-  
-  // TODO: separate JVM would be more realistic
-  def startServer(args: Array[String]): Thread = {
-    val server = new Thread(new Runnable() {
-      def run() = com.bimbr.clisson.server.ClissonServerApp.main(args)
-    })
-    server.start()
-    Thread.sleep(5000)
-    server
-  }
-
   def checkTrail() = {
     val client = new DefaultHttpClient
     val request = new HttpGet(URIUtils.createURI("http", "localhost", 9000, "/trail/msg-1", "", null))
     val response = client.execute(request)
     println("response to " + request.getURI + ": " + response + "\n" + EntityUtils.toString(response.getEntity))
-  }
-  
-  def stopServer(server: Thread): Unit = {
-    // server.stop() doesn't suffice, need more drastic solution
-    System.exit(0)
-  }
-  
-  def deleteIfExists(path: String): Unit = {
-    val file = new java.io.File(path)
-    if (file.exists) {
-      if (!file.delete()) sys.error("unable to delete " + file)
-    }
   }
   
   // the app that logs through log4j and whose events should end up with the server
