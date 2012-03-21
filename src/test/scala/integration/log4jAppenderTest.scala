@@ -1,9 +1,6 @@
 package integration
 
 import com.bimbr.clisson.server.config.Config
-import org.apache.http.impl.client.DefaultHttpClient
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.client.utils.URIUtils
 import org.apache.http.util.EntityUtils
 
 object log4jAppenderTest extends IntegrationTest {
@@ -15,12 +12,10 @@ object log4jAppenderTest extends IntegrationTest {
     Thread.sleep(1000)
     checkTrail()
   }
-  
+
   def checkTrail() = {
-    val client = new DefaultHttpClient
-    val request = new HttpGet(URIUtils.createURI("http", "localhost", 9000, "/trail/msg-1", "", null))
-    val response = client.execute(request)
-    println("response to " + request.getURI + ": " + response + "\n" + EntityUtils.toString(response.getEntity))
+    val response = trail("msg-1")
+    println("response for /trail/msg-1: " + response + "\n" + EntityUtils.toString(response.getEntity))
   }
   
   // the app that logs through log4j and whose events should end up with the server

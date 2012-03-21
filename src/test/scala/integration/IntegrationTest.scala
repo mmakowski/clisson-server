@@ -1,6 +1,11 @@
 package integration
 
+import org.apache.http.impl.client.DefaultHttpClient
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.client.utils.URIUtils
+
 import com.bimbr.clisson.server.config.Config
+
 
 trait IntegrationTest {
   def serverConfig: String
@@ -44,5 +49,11 @@ trait IntegrationTest {
     if (file.exists) {
       if (!file.delete()) sys.error("unable to delete " + file)
     }
+  }
+  
+  def trail(msgId: String) = {
+    val client = new DefaultHttpClient
+    val request = new HttpGet(URIUtils.createURI("http", "localhost", 9000, "/trail/" + msgId, "", null))
+    client.execute(request)
   }
 }
