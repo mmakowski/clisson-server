@@ -31,6 +31,12 @@ libraryDependencies ++= Seq(
 
 scalacOptions += "-deprecation"
 
+// one-jar doesn't currently work due to error configuring ehcache
+
+seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
+
+mainClass in oneJar := Some("com.bimbr.clisson.server.ClissonServerApp")
+
 // assembly doesn't currently work due to conflict between reference.conf files
 
 seq(assemblySettings: _*)
