@@ -6,4 +6,4 @@ find lib_managed -name *.jar -exec cp {} target/package/ \;
 cp src/test/resources/clisson-server.properties target/package/
 cp target/clisson-server-*.jar target/package/
 cp ~/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.9.1.jar target/package/
- 
+cp src/main/script/* target/package
