@@ -4,7 +4,7 @@ organization := "com.bimbr"
 
 name := "clisson-server"
 
-version := "0.1.0"
+version := "0.1.1-SNAPSHOT"
 
 scalaVersion := "2.9.1"
 
