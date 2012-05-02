@@ -7,5 +7,5 @@ package com.bimbr.clisson.server
  * @since 1.0.0
  */
 object ClissonServerApp {
-  def main(args: Array[String]) = play.core.server.NettyServer.main(args)
+  def main(args: Array[String]) = SockoApplication.start()
 }

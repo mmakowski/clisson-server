@@ -6,7 +6,7 @@ import scala.annotation.tailrec
 import System.currentTimeMillis
 
 
-object performanceTest extends IntegrationTest{
+object performanceTest extends IntegrationTest {
   val BatchTimeoutMs = 30000 
   val BatchSize = 1000 // will fit in async recorder buffer
   val PollDelayMs = 50 // higher increases save preformance (i.e. more realistic) but reduces timing accuracy

@@ -1,1 +1,1 @@
-java -cp './*' -Dhttp.port=$1 com.bimbr.clisson.server.ClissonServerApp
+java -Dhttp.port=$1 -jar clisson-server.jar
