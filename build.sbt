@@ -1,5 +1,3 @@
-import AssemblyKeys._
-
 organization := "com.bimbr"
 
 name := "clisson-server"
@@ -32,29 +30,6 @@ libraryDependencies ++= Seq(
 
 scalacOptions += "-deprecation"
 
-// one-jar doesn't currently work due to error configuring ehcache
-
 seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 
 mainClass in oneJar := Some("com.bimbr.clisson.server.ClissonServerApp")
-
-// assembly doesn't currently work due to conflict between reference.conf files
-
-seq(assemblySettings: _*)
-
-mainClass in assembly := Some("com.bimbr.clisson.server.ClissonServerApp")
-
-// proguard doesn't currently work
-
-seq(ProguardPlugin.proguardSettings: _*)
-
-proguardOptions ++= Seq(
-  keepMain("com.bimbr.clisson.server.ClissonServerApp"),
-  "-dontshrink"
-)
-
-//proguardLibraryJars <++= (update) map (_.select(module = moduleFilter(name = "config")))
-
-// temporary hack to get all dependencies in one place for packaging
-
-//retrieveManaged := true
