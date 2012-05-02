@@ -6,7 +6,7 @@ Clisson is an event database for message processing systems.
 Setup
 -----
 
-1. download the [latest packaged version](http://bimbr.com/downloads/clisson-server-0.1.0.zip)
+1. download the [latest packaged version](http://bimbr.com/downloads/clisson-server-0.2.0.zip)
 2. unzip to a directory of your choice
 3. edit `clisson-server.properties` and set `clisson.db.path` property to a directory where you'd like the database files stored
 
