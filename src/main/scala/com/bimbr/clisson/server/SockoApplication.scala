@@ -29,7 +29,7 @@ object SockoApplication {
   val routes = Routes({
     case HttpRequest(httpRequest) => httpRequest match {
       case GET  (PathSegments("trail" :: messageId :: Nil)) => system.actorOf(Props[TrailProcessor]) ! (httpRequest, messageId)
-      case POST (Path("event"))                             => system.actorOf(Props[EventProcessor]) ! httpRequest
+      case POST (Path("/event"))                            => system.actorOf(Props[EventProcessor]) ! httpRequest
     }
   })
 
