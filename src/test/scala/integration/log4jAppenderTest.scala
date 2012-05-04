@@ -41,7 +41,7 @@ object log4jAppenderTest extends IntegrationTest {
     class Transformation extends EventTransformation {
       def perform(log4jEvent: LoggingEvent): Event = {
         val logMessage = log4jEvent.getRenderedMessage
-        val msgId = """(.+): .*""".r.findFirstMatchIn(logMessage) match {
+        val msgId = """(msg-\d+): .*""".r.findPrefixMatchOf(logMessage) match {
           case None    => throw new EventTransformation.IgnoreEventException
           case Some(m) => m.group(1)
         }
