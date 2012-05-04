@@ -1,7 +1,11 @@
 #!/bin/bash
 
-rm -rf target/package
-mkdir target/package
-cp src/test/resources/clisson-server.properties target/package/
-cp target/clisson-server-*-one-jar.jar target/package/clisson-server.jar
-cp src/main/script/* target/package
+VERSION=$1
+
+rm -rf target/clisson-server-$VERSION
+rm -rf target/clisson-server-$VERSION.zip
+mkdir target/clisson-server-$VERSION
+cp src/test/resources/clisson-server.properties target/clisson-server-$VERSION/
+cp target/clisson-server-*-one-jar.jar target/clisson-server-$VERSION/clisson-server.jar
+cp src/main/script/* target/clisson-server-$VERSION
+zip -r target/clisson-server-$VERSION.zip target/clisson-server-$VERSION 
