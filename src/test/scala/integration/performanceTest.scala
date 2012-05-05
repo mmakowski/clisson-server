@@ -15,7 +15,7 @@ object performanceTest extends IntegrationTest {
 
   lazy val record = {
     System.setProperty("clisson.config", "classpath://integration/performance/clisson-client.properties")
-    getRecorder("performanceTest")
+    getRecorder()
   }
     
   def run(server: Thread) = (0 to 99) foreach { runBatch }
