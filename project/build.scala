@@ -10,7 +10,7 @@ object ClissonServerBuild extends Build {
     zip <<= (target, name, version, oneJar, filesToInclude in zip, streams) map { (buildTarget, projectName, projectVersion, oneJarFile, extraFiles, s) =>
       val dirName = projectName + "-" + projectVersion
       val output = new java.io.File(buildTarget, dirName + ".zip")
-      val entries = (extraFiles.map(file) :+ oneJarFile) map (path => (path, dirName + "/" + path.getName))
+      val entries = extraFiles.map(file).map(path => (path, dirName + "/" + path.getName)) :+ (oneJarFile, dirName + "/clisson-server.jar")
       s.log.info("Packaging " + output + " ...")
       IO.zip(entries, output)
       s.log.info("Done packaging.")
