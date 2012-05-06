@@ -34,7 +34,7 @@ seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 
 mainClass in oneJar := Some("com.bimbr.clisson.server.ClissonServerApp")
 
-include in zip := Seq(
+filesToInclude in zip := Seq(
   "src/main/script/clisson-server",
   "src/main/script/clisson-server.cmd",
   "src/test/resources/clisson-server.properties"

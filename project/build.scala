@@ -3,11 +3,11 @@ import Keys._
 import com.github.retronym.SbtOneJar.oneJar
 
 object ClissonServerBuild extends Build {
-  val include = SettingKey[Seq[String]]("include-in-zip", "Files to include in the distributable zip, in addition to one-jar jar")
+  val filesToInclude = SettingKey[Seq[String]]("files-to-include", "Files to include in the distributable zip, in addition to one-jar jar")
   val zip = TaskKey[File]("zip", "Builds the distributable zip file")
   
   val zipSettings = Seq(
-    zip <<= (target, name, version, oneJar, include in zip, streams) map { 
+    zip <<= (target, name, version, oneJar, filesToInclude in zip, streams) map { 
       (buildTarget, projectName, projectVersion, oneJarFile, extraFiles, s) =>
       val dirName = projectName + "-" + projectVersion
       val output = new java.io.File(buildTarget, dirName + ".zip")
