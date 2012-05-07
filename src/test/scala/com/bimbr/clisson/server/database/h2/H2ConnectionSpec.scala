@@ -8,7 +8,7 @@ import java.util.Date
 import org.junit.runner.RunWith
 import org.specs2.execute.Result
 import org.specs2.matcher.Matcher
-import org.specs2.mutable.{ After, Specification }
+import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import com.bimbr.clisson.protocol.{ Event, Trail }
 

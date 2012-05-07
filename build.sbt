@@ -17,10 +17,11 @@ libraryDependencies ++= Seq(
   "ch.qos.logback"             % "logback-classic"       % "1.0.2",
   "com.bimbr"                  % "clisson-protocol"      % "0.1.0",
   "com.h2database"             % "h2"                    % "1.3.158",
-  "com.typesafe.akka"          % "akka-actor"            % "2.0",
+  "com.typesafe.akka"          % "akka-actor"            % "2.0.1",
   "commons-configuration"      % "commons-configuration" % "1.8",
   "org.mashupbots.socko"      %% "socko-webserver"       % "0.1.0",
   "com.bimbr"                  % "clisson-client"        % "0.3.0"          % "test",  
+  "com.typesafe.akka"          % "akka-testkit"          % "2.0.1"          % "test",
   "junit"                      % "junit"                 % "4.10"           % "test", 
   "log4j"                      % "log4j"                 % "1.2.16"         % "test",
   "org.apache.httpcomponents"  % "httpclient"            % "4.1.3"          % "test",
@@ -40,3 +41,5 @@ filesToInclude in zip := Seq(
   "src/main/distributables/logback.xml",
   "src/test/resources/clisson-server.properties"
 )
+
+EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource
