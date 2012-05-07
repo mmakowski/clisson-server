@@ -9,7 +9,7 @@ import akka.actor.Actor
 import com.bimbr.clisson.protocol._
 import com.bimbr.clisson.server.database._
 import com.bimbr.clisson.server.config.Config
-
+import org.slf4j.LoggerFactory
 
 /**
  * A connector for H2 database.
@@ -19,13 +19,14 @@ import com.bimbr.clisson.server.config.Config
  */
 class H2Connector(config: Config) extends Connector {
   private val DbPathProperty = "clisson.db.path"
+  private val Log = LoggerFactory.getLogger(classOf[H2Connector])
+
   Class forName ("org.h2.Driver")
   
   def connect() = config(DbPathProperty).toRight(DbPathProperty + " is not defined in " + config).fold(Left(_), p => Right(newH2Connection(p)))
   
-  // TODO: use Akka LoggingAdapter?
   private def newH2Connection(dbPath: String): H2Connection = {
-    println("creating H2 connection to database at " + dbPath)
+    Log.info("creating H2 connection to database at " + dbPath)
     new H2Connection(DriverManager.getConnection("jdbc:h2:" + dbPath, "sa", ""))
   }
 }
@@ -34,6 +35,8 @@ class H2Connector(config: Config) extends Connector {
 private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection {
   import SQL._
   import MessageRoles._
+
+  private val Log = LoggerFactory.getLogger(classOf[H2Connection])
   
   if (!isInitialised) initialise()
   // TODO: upgrade schema if required
@@ -166,10 +169,9 @@ private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection
   }
   
   private def initialise() = {
-    // TODO: log instead of println
-    println("running database initialisation DDL...")
+    Log.info("running database initialisation DDL...")
     execute(InitDdl) 
-    println("running database initialisation DML...")
+    Log.info("running database initialisation DML...")
     execute(InitDml)
   }
   
