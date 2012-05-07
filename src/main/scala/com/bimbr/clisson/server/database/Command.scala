@@ -1,5 +1,6 @@
 package com.bimbr.clisson.server.database
 
+import java.util.Date
 import com.bimbr.clisson.protocol.StandaloneObject
 
 /**
@@ -17,3 +18,7 @@ case class Insert[T <: StandaloneObject](obj: T) extends Command
  * @since 1.0.0
  */
 case class GetTrail(messageId: String) extends Command
+/**
+ * @since 1.0.0
+ */
+case class TrimEventsBefore(cutOffTime: Date) extends Command

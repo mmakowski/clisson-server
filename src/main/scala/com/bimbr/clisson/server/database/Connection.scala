@@ -1,5 +1,6 @@
 package com.bimbr.clisson.server.database
 
+import java.util.Date
 import com.bimbr.clisson.protocol._ 
 
 /**
@@ -20,7 +21,18 @@ trait Connector {
  * @since 1.0.0
  */
 trait Connection {
+  /**
+   * @return the trail of specified message (if exists)
+   */
   def getTrail(messageId: String): Option[Trail]
+  /**
+   * inserts event to the database
+   */
   def insertEvent(event: Event): Unit
+  /**
+   * deletes all events with timestamp before cutOffTime
+   * @return the number of events trimmed
+   */
+  def trimEventsBefore(cutOffTime: Date): Int
 }
 

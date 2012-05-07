@@ -4,6 +4,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable.{ Set => MSet }
 
 import java.sql.{ Connection, DriverManager, PreparedStatement }
+import java.util.Date
 import org.junit.runner.RunWith
 import org.specs2.execute.Result
 import org.specs2.matcher.Matcher
@@ -18,10 +19,8 @@ class H2ConnectionSpec extends Specification {
   
   "H2Connection construction" should {
     "initialise database if database file does not exist" in withDb { (jdbcConn, h2Conn) => 
-      val select = jdbcConn.prepareStatement("select value from metadata where key = 'schema.version'")
-      val result = select.executeQuery()
-      val selectedVersion = if (result.next) Some(result.getString(1)) else None
-      selectedVersion must beSome.like { case str => str mustEqual SQL.SchemaVersion }
+      val schemaVersion = "select value from metadata where key = 'schema.version'".stringResult(jdbcConn)
+      schemaVersion must beSome.like { case str => str mustEqual SQL.SchemaVersion }
     }
     "upgrade database to current schema if database schema is out of date" in {
       todo
@@ -29,9 +28,29 @@ class H2ConnectionSpec extends Specification {
   }
   "H2Connection" should {
     "store inserted events" in withDb { (_, h2Conn) =>
-      val event = new Event("h2 test", new java.util.Date, MSet("msg1").asJava, MSet("msg2", "msg3").asJava, "test event")
-      h2Conn.insertEvent(event)
-      h2Conn.getTrail("msg1") must beSome.like { case trail => trail must haveEvents (Seq(event)) } 
+      val evt = event()
+      h2Conn.insertEvent(evt)
+      h2Conn.getTrail("msg1") must beSome.like { case trail => trail must haveTimeline (Seq(evt)) } 
+    }
+    "trim all events before specified cut-off time" in withDb { (_, h2Conn) =>
+      val cutOffTime = new Date(3L)
+      val eventsToInsert = Seq(
+        event(timestamp = new Date(1L)),
+        event(timestamp = new Date(2L)),
+        event(timestamp = cutOffTime),
+        event(timestamp = new Date(4L)),
+        event(timestamp = new Date(5L))
+      )
+      val expectedTimelineAfterTrim = eventsToInsert.slice(2, 5)
+      eventsToInsert foreach { h2Conn.insertEvent(_) }
+      val trimmedEventsCount = h2Conn.trimEventsBefore(cutOffTime)
+      (trimmedEventsCount mustEqual 2) and (h2Conn.getTrail("msg1") must beSome.like { case trail => trail must haveTimeline (expectedTimelineAfterTrim)})
+    }
+    "delete ids of messages whose all events have been trimmed" in withDb { (jdbcConn, h2Conn) =>
+      h2Conn.insertEvent(event(timestamp = new Date(1L), inputMsgIds = MSet("msg2"), outputMsgIds = MSet("msg2")))
+      h2Conn.trimEventsBefore(new Date(2L))
+      val trimmedId = "select external_id from message_ids where external_id = 'msg2'".stringResult(jdbcConn)
+      trimmedId must beNone
     }
   }
   
@@ -44,6 +63,7 @@ class H2ConnectionSpec extends Specification {
       body(jdbcConn, h2Conn)
     } finally {
       jdbcConn.close()
+      deleteDb(dbPath)
     }
   }
   
@@ -65,5 +85,19 @@ class H2ConnectionSpec extends Specification {
     }
   }
   
-  def haveEvents(timeline: Seq[Event]): Matcher[Trail] = (t: Trail) => (t.getTimeline.asScala == timeline, "the timeline of " + t + " is not " + timeline)
+  def haveTimeline(timeline: Seq[Event]): Matcher[Trail] = (t: Trail) => (t.getTimeline.asScala == timeline, "the timeline of " + t + " is not " + timeline)
+  
+  val MsgIds = MSet("msg1")
+  def event(timestamp: Date = new Date, inputMsgIds: MSet[String] = MsgIds, outputMsgIds: MSet[String] = MsgIds) = 
+    new Event("h2 test", timestamp, inputMsgIds.asJava, outputMsgIds.asJava, "test event")
+  
+  class SqlStatement(sql: String) {
+    def stringResult(jdbcConn: Connection): Option[String] = {
+      val select = jdbcConn.prepareStatement(sql)
+      val result = select.executeQuery()
+      if (result.next) Some(result.getString(1)) else None
+    }
+  }
+  
+  implicit def stringToSqlStatement(sql: String): SqlStatement = new SqlStatement(sql)
 }

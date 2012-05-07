@@ -99,4 +99,8 @@ where msrc.external_id = ?
   and e.event_id       = em.event_id
   and em.message_id    = m.message_id  
 """
+    
+  val DeleteEventsBefore = """delete from events where timestamp < ?;"""
+    
+  val DeleteOrphanedMessageIds = """delete from message_ids m where not exists (select 1 from event_messages em where em.message_id = m.message_id)"""
 }

@@ -4,6 +4,9 @@ import com.bimbr.clisson.protocol._
 
 import akka.actor.Actor
 
+import org.slf4j.LoggerFactory
+
+
 /**
  * An actor that handles interaction with the database.
  * 
@@ -11,6 +14,8 @@ import akka.actor.Actor
  * @since 1.0.0
  */
 class Database(val connector: Connector) extends Actor {
+  private val Log = LoggerFactory.getLogger(classOf[Database])
+  
   private val conn = connector.connect() match {
     case Left(errorMessage) => throw new RuntimeException(errorMessage)
     case Right(conn)        => conn
@@ -23,6 +28,6 @@ class Database(val connector: Connector) extends Actor {
   
   private def insert(obj: StandaloneObject) = obj match {
     case event: Event => conn insertEvent event
-    case _            => println("TODO: log error")
+    case _            => Log.error("unsupported type of object to insert: " + obj)
   }
 }

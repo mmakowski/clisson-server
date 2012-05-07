@@ -1,7 +1,7 @@
 package com.bimbr.clisson.server.database.h2
 
 import java.lang.{ Long => JLong }
-import java.sql.{ DriverManager, PreparedStatement }
+import java.sql.{ DriverManager, PreparedStatement, Timestamp }
 import java.util.{ Date, Set => JSet }
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ Map => MMap, Set => MSet }
@@ -105,6 +105,16 @@ private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection
     conn.commit()
   }
 
+  def trimEventsBefore(cutOffTime: Date) = {
+    val eventDelete = conn prepareStatement DeleteEventsBefore
+    eventDelete setTimestamp (1, new Timestamp(cutOffTime.getTime))
+    val deletedEventsCount = eventDelete.executeUpdate()
+    val messageIdDelete = conn prepareStatement DeleteOrphanedMessageIds
+    messageIdDelete.executeUpdate()
+    conn.commit()
+    deletedEventsCount
+  }
+  
   private def n2e(str: String) = if (str == null) "" else str
   
   private def getOrInsertMessageId(externalId: String) = {
