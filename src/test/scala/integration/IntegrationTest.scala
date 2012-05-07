@@ -6,10 +6,11 @@ import org.apache.http.client.utils.URIUtils
 
 import com.bimbr.clisson.server.config.Config
 
+import com.bimbr.clisson.server.{ ServerApplication, SockoApplication }
 
 trait IntegrationTest {
   def serverConfig: String
-  def run(server: Thread): Unit
+  def run(server: ServerApplication): Unit
   
   def main(args: Array[String]) = {
     System.setProperty("config", serverConfig)
@@ -30,19 +31,14 @@ trait IntegrationTest {
   }
   
   // TODO: separate JVM would be more realistic
-  def startServer(args: Array[String]): Thread = {
-    val server = new Thread(new Runnable() {
-      def run() = com.bimbr.clisson.server.ClissonServerApp.main(args)
-    })
+  def startServer(args: Array[String]): ServerApplication = {
+    val server = SockoApplication
     server.start()
     Thread.sleep(5000)
     server
   }
   
-  def stopServer(server: Thread): Unit = {
-    // server.stop() doesn't suffice, need more drastic solution
-    System.exit(0)
-  }
+  def stopServer(server: ServerApplication): Unit = server.stop()
 
   def deleteIfExists(path: String): Unit = {
     val file = new java.io.File(path)

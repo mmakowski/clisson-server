@@ -14,14 +14,24 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus.{ ACCEPTED, BAD_REQ
 import org.mashupbots.socko.context.HttpRequestProcessingContext
 import org.mashupbots.socko.routes.{ GET, HttpRequest, POST, Path, PathSegments, Routes }
 import org.mashupbots.socko.webserver.{ WebServer, WebServerConfig }
+import org.slf4j.LoggerFactory
 
-object SockoApplication {
+/**
+ * A server application based on socko
+ * 
+ * @since 1.0.0
+ * @author mmakowski
+ */
+object SockoApplication extends ServerApplication {
+  // get a logger to initialise logging system before other components require it to avoid http://www.slf4j.org/codes.html#substituteLogger
+  LoggerFactory.getLogger("SockoApplication")
   private lazy val config = loadConfig()
-  private lazy val webServerConfig = WebServerConfig(port = Integer.parseInt(System.getProperty("http.port", "9000")))
+  private lazy val webServerConfig = WebServerConfig(port = Integer.parseInt(config("http.port").getOrElse("9000")))
   private val system = ActorSystem("clissonServer");
   implicit val timeout = Timeout(10000 milliseconds)
   private val deserialiser = new Deserialiser
   private val database = system.actorOf(databaseActorType)
+  private var isRunning = false
   
   /**
    * Defines how HTTP requests to different paths are handled.
@@ -33,6 +43,8 @@ object SockoApplication {
     }
   })
 
+  val webServer = new WebServer(webServerConfig, routes)
+  
   class TrailProcessor extends Actor {
     def receive = {
       case (request: HttpRequestProcessingContext, messageId: String) =>        
@@ -47,21 +59,21 @@ object SockoApplication {
   class EventProcessor extends Actor {
     def receive = {
       case request: HttpRequestProcessingContext => try {
-          val json = request.readStringContent
-          deserialise(classOf[Event], json) match {
-            case Left(event) => persist(event); request.writeErrorResponse(ACCEPTED)
-            case Right(exc)  => request.writeErrorResponse(BAD_REQUEST, msg = exc.getMessage)
-          }
-        } catch {
-          case e: Exception => request.writeErrorResponse(INTERNAL_SERVER_ERROR, msg = e.getMessage)
+        val json = request.readStringContent
+        deserialise(classOf[Event], json) match {
+          case Left(event) => persist(event); request.writeErrorResponse(ACCEPTED)
+          case Right(exc)  => request.writeErrorResponse(BAD_REQUEST, msg = exc.getMessage)
         }
-        context.stop(self)
+      } catch {
+        case e: Exception => request.writeErrorResponse(INTERNAL_SERVER_ERROR, msg = e.getMessage)
+      }
+      context.stop(self)
     }
   }
   
-  private def serialise[T](obj: T) = jsonFor(obj)
+  private def serialise[T](obj: T): String = jsonFor(obj)
   
-  private def deserialise[T](cls: Class[T], json: String) = deserialiser.deserialise(cls, json)
+  private def deserialise[T](cls: Class[T], json: String): Either[T, Exception] = deserialiser.deserialise(cls, json)
   
   private def persist(event: Event): Unit = database ! Insert(event) 
     
@@ -76,10 +88,16 @@ object SockoApplication {
   } 
 
   def start() = {
-    val webServer = new WebServer(webServerConfig, routes)
     webServer.start()
-    Runtime.getRuntime.addShutdownHook(new Thread("webserver-shutdown") {
-      override def run { webServer.stop() }
+    Runtime.getRuntime.addShutdownHook(new Thread("app-shutdown") {
+      override def run { SockoApplication.stop() }
     })
+    isRunning = true
+  }
+  
+  def stop() = if (isRunning) {
+    webServer.stop()
+    system.shutdown()
+    isRunning = false
   }
 }

@@ -1,6 +1,7 @@
 package integration
 
 import com.bimbr.clisson.client.RecorderFactory.getRecorder
+import com.bimbr.clisson.server.ServerApplication
 import org.apache.http.util.EntityUtils
 import scala.annotation.tailrec
 import System.currentTimeMillis
@@ -18,7 +19,7 @@ object performanceTest extends IntegrationTest {
     getRecorder()
   }
     
-  def run(server: Thread) = (0 to 99) foreach { runBatch }
+  def run(server: ServerApplication) = (0 to 99) foreach { runBatch }
 
   private def runBatch(batchNo: Int) = {
     val startTime = currentTimeMillis()

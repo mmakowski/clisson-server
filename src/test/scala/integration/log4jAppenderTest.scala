@@ -1,13 +1,14 @@
 package integration
 
 import com.bimbr.clisson.server.config.Config
+import com.bimbr.clisson.server.ServerApplication
 import org.apache.http.util.EntityUtils
 
 object log4jAppenderTest extends IntegrationTest {
   val serverConfig = "integration/log4jAppender/clisson-server.properties"
   System.setProperty("config", serverConfig)
     
-  def run(server: Thread) = {
+  def run(server: ServerApplication) = {
     loggingApp.run()
     Thread.sleep(1000)
     checkTrail()
