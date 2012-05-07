@@ -78,7 +78,7 @@ object SockoApplication {
   def start() = {
     val webServer = new WebServer(webServerConfig, routes)
     webServer.start()
-    Runtime.getRuntime.addShutdownHook(new Thread {
+    Runtime.getRuntime.addShutdownHook(new Thread("webserver-shutdown") {
       override def run { webServer.stop() }
     })
   }

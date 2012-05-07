@@ -9,6 +9,8 @@ package com.bimbr.clisson.server.database.h2
 private[h2] object SQL {
   import MessageRoles._ 
  
+  val SchemaVersion = "0.1.0"
+  
   val InitialisedCheck = "select * from metadata;"
   
   val InitDdl = """
@@ -63,7 +65,7 @@ create table metadata (
 -- message roles
 insert into message_roles (role_id, description) values (""" + SourceMsg + """, 'a source message of a transformation');
 insert into message_roles (role_id, description) values (""" + ResultMsg + """, 'a result message of a transformation');
-insert into metadata (key, value) values ('schema.version', '0.1.0');
+insert into metadata (key, value) values ('schema.version', '""" + SchemaVersion + """');
 """
   
   val SelectNextEventId = """select nextval('event_id_seq') from dual;""" 
