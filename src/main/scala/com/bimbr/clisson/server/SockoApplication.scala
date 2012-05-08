@@ -59,15 +59,15 @@ object SockoApplication extends ServerApplication {
   class EventProcessor extends Actor {
     def receive = {
       case request: HttpRequestProcessingContext => try {
-        val json = request.readStringContent
-        deserialise(classOf[Event], json) match {
-          case Left(event) => persist(event); request.writeErrorResponse(ACCEPTED)
-          case Right(exc)  => request.writeErrorResponse(BAD_REQUEST, msg = exc.getMessage)
+          val json = request.readStringContent
+          deserialise(classOf[Event], json) match {
+            case Left(event) => persist(event); request.writeErrorResponse(ACCEPTED)
+            case Right(exc)  => request.writeErrorResponse(BAD_REQUEST, msg = exc.getMessage)
+          }
+        } catch {
+          case e: Exception => request.writeErrorResponse(INTERNAL_SERVER_ERROR, msg = e.getMessage)
         }
-      } catch {
-        case e: Exception => request.writeErrorResponse(INTERNAL_SERVER_ERROR, msg = e.getMessage)
-      }
-      context.stop(self)
+        context.stop(self)
     }
   }
   
