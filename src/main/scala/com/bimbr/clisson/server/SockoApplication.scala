@@ -1,5 +1,6 @@
 package com.bimbr.clisson.server
 
+import java.net.URLDecoder.decode
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.duration._
@@ -38,7 +39,7 @@ object SockoApplication extends ServerApplication {
    */
   val routes = Routes({
     case HttpRequest(httpRequest) => httpRequest match {
-      case GET  (PathSegments("trail" :: messageId :: Nil)) => system.actorOf(Props[TrailProcessor]) ! (httpRequest, messageId)
+      case GET  (PathSegments("trail" :: messageId :: Nil)) => system.actorOf(Props[TrailProcessor]) ! (httpRequest, decode(messageId, "UTF-8"))
       case POST (Path("/event"))                            => system.actorOf(Props[EventProcessor]) ! httpRequest
     }
   })
