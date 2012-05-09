@@ -36,10 +36,11 @@ seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 mainClass in oneJar := Some("com.bimbr.clisson.server.ClissonServerApp")
 
 filesToInclude in zip := Seq(
-  "src/main/distributables/clisson-server",
-  "src/main/distributables/clisson-server.cmd",
-  "src/main/distributables/logback.xml",
-  "src/test/resources/clisson-server.properties"
+  "src/main/distributables/clisson-server"       -> "clisson-server",
+  "src/main/distributables/clisson-server.cmd"   -> "clisson-server.cmd",
+  "src/main/distributables/logback.xml"          -> "logback.xml",
+  "src/main/static/favicon.ico"                  -> "static/favicon.ico",
+  "src/test/resources/clisson-server.properties" -> "clisson-server.properties"
 )
 
 EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource

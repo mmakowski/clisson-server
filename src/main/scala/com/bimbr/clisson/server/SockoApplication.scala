@@ -16,6 +16,10 @@ import org.mashupbots.socko.context.HttpRequestProcessingContext
 import org.mashupbots.socko.routes.{ GET, HttpRequest, POST, Path, PathSegments, Routes }
 import org.mashupbots.socko.webserver.{ WebServer, WebServerConfig }
 import org.slf4j.LoggerFactory
+import org.mashupbots.socko.processors.StaticFileProcessor
+import akka.routing.FromConfig
+import org.mashupbots.socko.processors.StaticFileRequest
+import java.io.File
 
 /**
  * A server application based on socko
@@ -27,18 +31,25 @@ object SockoApplication extends ServerApplication {
   // get a logger to initialise logging system before other components require it to avoid http://www.slf4j.org/codes.html#substituteLogger
   LoggerFactory.getLogger("SockoApplication")
   private lazy val config = loadConfig()
-  private lazy val webServerConfig = WebServerConfig(port = Integer.parseInt(config("http.port").getOrElse("9000")))
+  private lazy val webServerConfig = WebServerConfig(
+    serverName = "ClissonServer",
+    port       = Integer.parseInt(config("http.port").getOrElse("9000"))
+  )
+  private val staticFileDir = new File("static")
   private val system = ActorSystem("clissonServer");
   implicit val timeout = Timeout(10000 milliseconds)
   private val deserialiser = new Deserialiser
   private val database = system.actorOf(databaseActorType)
   private var isRunning = false
   
+  private val staticFileProcessor = system.actorOf(Props[StaticFileProcessor].withRouter(FromConfig()).withDispatcher("pinned-dispatcher"), "static-file-router")
+  
   /**
    * Defines how HTTP requests to different paths are handled.
    */
   val routes = Routes({
     case HttpRequest(httpRequest) => httpRequest match {
+      case GET  (Path("/favicon.ico"))                      => staticFileProcessor ! getStaticFile(httpRequest, "favicon.ico") 
       case GET  (PathSegments("trail" :: messageId :: Nil)) => system.actorOf(Props[TrailProcessor]) ! (httpRequest, decode(messageId, "UTF-8"))
       case POST (Path("/event"))                            => system.actorOf(Props[EventProcessor]) ! httpRequest
     }
@@ -71,6 +82,11 @@ object SockoApplication extends ServerApplication {
         context.stop(self)
     }
   }
+
+  private def getStaticFile(context: HttpRequestProcessingContext, path: String): StaticFileRequest = StaticFileRequest(
+    context, staticFileDir, new File(staticFileDir, path), new File(System.getProperty("java.io.tmpdir"))
+  )
+  
   
   private def serialise[T](obj: T): String = jsonFor(obj)
   
