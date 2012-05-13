@@ -55,7 +55,7 @@ class MetricProcessor(database: ActorRef)(implicit val timeout: Timeout) extends
     }
   
   def queryParam(id: String)(implicit request: HttpRequestProcessingContext): Option[String] = 
-    catching(classOf[Exception]) opt request.endPoint.queryStringMap(StartTime).get(0)
+    catching(classOf[Exception]) opt request.endPoint.queryStringMap(id).get(0)
   
   // extract to common utils module
   val ISO8601 = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"

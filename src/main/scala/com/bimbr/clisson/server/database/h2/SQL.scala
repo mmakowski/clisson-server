@@ -104,13 +104,16 @@ where msrc.external_id = ?
     
   val DeleteOrphanedMessageIds = """delete from message_ids m where not exists (select 1 from event_messages em where em.message_id = m.message_id)"""
     
-  def SelectAverageComponentLatencies = """
+  val SelectAverageComponentLatencies = """
 select source, avg(datediff('ms', min_ts, max_ts)) 
 from (
   select message_id, source, min(timestamp) as min_ts, max(timestamp) as max_ts
   from events e, event_messages m
   where e.event_id = m.event_id
+    and e.timestamp >= ?
+    and e.timestamp <= ?
   group by m.message_id, e.source
+  having min_ts <> max_ts
 )
 group by source
 union all
@@ -119,7 +122,10 @@ from (
   select message_id, min(timestamp) as min_ts, max(timestamp) as max_ts
   from events e, event_messages m
   where e.event_id = m.event_id
+    and e.timestamp >= ?
+    and e.timestamp <= ?
   group by m.message_id
+  having min_ts <> max_ts
 )
 """
 }
