@@ -15,9 +15,11 @@ sealed trait Command
  */
 case class Insert[T <: StandaloneObject](obj: T) extends Command
 /**
+ * @param startTime the start of time window for metric calculation; if None, then start at the beginning of the history
+ * @param endTime the end of time window for metric calculation; if None, then end at the end of the history 
  * @since 1.0.0
  */
-case class GetAverageLatency() extends Command
+case class GetAverageLatency(startTime: Option[Date], endTime: Option[Date]) extends Command
 /**
  * @since 1.0.0
  */

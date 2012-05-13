@@ -42,9 +42,10 @@ private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection
   if (!isInitialised) initialise()
   // TODO: upgrade schema if required
 
-  def getAverageLatency() = catching(classOf[Exception]) either {
-    Log.debug("calculating average latency")
+  def getAverageLatency(startTime: Option[Date], endTime: Option[Date]) = catching(classOf[Exception]) either {
+    Log.debug("calculating average latency for period " + startTime + " to " + endTime)
     val select = conn prepareStatement SelectAverageComponentLatencies
+    // TODO: set start and end dates
     val result = select.executeQuery()
 
     var endToEndLatency: Long = -1

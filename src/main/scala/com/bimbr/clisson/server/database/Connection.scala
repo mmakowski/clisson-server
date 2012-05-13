@@ -24,7 +24,7 @@ trait Connection {
   /**
    * @return the average latency of messages, per component
    */
-  def getAverageLatency(): Either[Throwable, AverageLatency]
+  def getAverageLatency(startTime: Option[Date], endTime: Option[Date]): Either[Throwable, AverageLatency]
   /**
    * @return the trail of specified message (if exists)
    */
