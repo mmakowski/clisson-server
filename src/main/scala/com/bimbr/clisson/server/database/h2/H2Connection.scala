@@ -3,7 +3,7 @@ package com.bimbr.clisson.server.database.h2
 import java.lang.{ Long => JLong }
 import java.sql.{ DriverManager, PreparedStatement, Timestamp }
 import java.util.{ Date, Set => JSet }
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable.{ Map => MMap, Set => MSet }
 import scala.util.control.Exception._
 import akka.actor.Actor
@@ -43,8 +43,19 @@ private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection
   // TODO: upgrade schema if required
 
   def getAverageLatency() = catching(classOf[Exception]) either {
-    Log.info("TODO: calculate latency")
-    throw new RuntimeException("TODO: implement")
+    Log.debug("calculating average latency")
+    val select = conn prepareStatement SelectAverageComponentLatencies
+    val result = select.executeQuery()
+
+    var endToEndLatency: Long = -1
+    val componentLatencies = MMap[String, Long]()
+    while (result.next) {
+      val componentId = result getString 1
+      val latency     = result getLong   2
+      if (componentId == "__etoe__") endToEndLatency = latency
+      else componentLatencies put (componentId, latency)
+    }
+    AverageLatency(endToEndLatency, componentLatencies.asJava)
   }
   
   // TODO: very nasty, refactor
@@ -73,7 +84,7 @@ private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection
       if (prevEventId != eventId) {
         lastEventParams match {
           case Some((eventId, source, timestamp, description, messageId, messageRole)) =>
-            val event = new Event(source, timestamp, inputMsgIds, outputMsgIds, n2e(description))
+            val event = new Event(source, timestamp, inputMsgIds.asJava, outputMsgIds.asJava, n2e(description))
             events += ((prevEventId, event))
           case None => throw new IllegalStateException("impossible: no lastEventParams available")
         }
@@ -93,18 +104,18 @@ private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection
     
     lastEventParams match {
       case Some((eventId, source, timestamp, description, messageId, messageRole)) =>
-        val event = new Event(source, timestamp, inputMsgIds, outputMsgIds, n2e(description))
+        val event = new Event(source, timestamp, inputMsgIds.asJava, outputMsgIds.asJava, n2e(description))
         events += ((eventId, event))
       case None => // do nothing
     }
     
     if (events isEmpty) None 
-    else Some(new Trail(events, eventGraph, initialEventIds))
+    else Some(new Trail(events.asJava, eventGraph.asJava, initialEventIds.asJava))
   }
   
   def insertEvent(event: Event) = {
-    val inputMsgIds = event.getInputMessageIds.map(getOrInsertMessageId)
-    val outputMsgIds = event.getOutputMessageIds.map(getOrInsertMessageId)
+    val inputMsgIds = event.getInputMessageIds.asScala.map(getOrInsertMessageId)
+    val outputMsgIds = event.getOutputMessageIds.asScala.map(getOrInsertMessageId)
     val eventId = insertEvent(event.getSourceId, event.getTimestamp, event.getDescription)
     insertEventMessages(eventId, inputMsgIds, SourceMsg)
     insertEventMessages(eventId, outputMsgIds, ResultMsg)

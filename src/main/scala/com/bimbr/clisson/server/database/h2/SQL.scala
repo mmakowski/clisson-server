@@ -103,4 +103,10 @@ where msrc.external_id = ?
   val DeleteEventsBefore = """delete from events where timestamp < ?;"""
     
   val DeleteOrphanedMessageIds = """delete from message_ids m where not exists (select 1 from event_messages em where em.message_id = m.message_id)"""
+    
+  val SelectAverageComponentLatencies = """
+select 'TODO' as component_id, 1000 as average_latency from dual
+union all
+select '__etoe__', 1400 from dual
+"""
 }

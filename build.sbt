@@ -29,7 +29,7 @@ libraryDependencies ++= Seq(
   "org.specs2"                %% "specs2"                % "1.8.2"          % "test"
 )
 
-scalacOptions += "-deprecation"
+scalacOptions ++= Seq("-deprecation", "-unchecked")
 
 seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 
