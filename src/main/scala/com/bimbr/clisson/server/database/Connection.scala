@@ -22,6 +22,10 @@ trait Connector {
  */
 trait Connection {
   /**
+   * @return the average latency of messages, per component
+   */
+  def getAverageLatency(): Either[Throwable, AverageLatency]
+  /**
    * @return the trail of specified message (if exists)
    */
   def getTrail(messageId: String): Option[Trail]

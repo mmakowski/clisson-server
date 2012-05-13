@@ -39,7 +39,7 @@ object metricsTest extends IntegrationTest {
 
   def checkMetrics() = {
     println("checking avg latency")
-    val response = responseTo("/metric/avergage-latency")
+    val response = responseTo("/metric/average-latency")
     println("response for /metric/average-latency: " + response + "\n" + EntityUtils.toString(response.getEntity))
   }
   

@@ -17,6 +17,10 @@ case class Insert[T <: StandaloneObject](obj: T) extends Command
 /**
  * @since 1.0.0
  */
+case class GetAverageLatency() extends Command
+/**
+ * @since 1.0.0
+ */
 case class GetTrail(messageId: String) extends Command
 /**
  * @since 1.0.0

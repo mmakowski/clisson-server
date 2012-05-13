@@ -5,6 +5,7 @@ import java.sql.{ DriverManager, PreparedStatement, Timestamp }
 import java.util.{ Date, Set => JSet }
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ Map => MMap, Set => MSet }
+import scala.util.control.Exception._
 import akka.actor.Actor
 import com.bimbr.clisson.protocol._
 import com.bimbr.clisson.server.database._
@@ -41,6 +42,11 @@ private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection
   if (!isInitialised) initialise()
   // TODO: upgrade schema if required
 
+  def getAverageLatency() = catching(classOf[Exception]) either {
+    Log.info("TODO: calculate latency")
+    throw new RuntimeException("TODO: implement")
+  }
+  
   // TODO: very nasty, refactor
   def getTrail(externalMessageId: String) = {
     val select = conn prepareStatement SelectEventsForExternalId

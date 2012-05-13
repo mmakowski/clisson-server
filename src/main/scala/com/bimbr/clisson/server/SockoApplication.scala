@@ -41,7 +41,7 @@ object SockoApplication extends ServerApplication {
   
   private val          StaticFileDir = new File("static")
   private val          system = ActorSystem("clisson-server");
-  private implicit val timeout = Timeout(10000 milliseconds)
+  private implicit val timeout = Timeout(10 seconds)
   private val          database = system.actorOf(databaseActorType, name = "database")
   private val          staticFileProcessor = system.actorOf(Props[StaticFileProcessor].
                                                             withRouter(FromConfig()).
@@ -53,13 +53,15 @@ object SockoApplication extends ServerApplication {
   val routes = Routes({
     case HttpRequest(httpRequest) => httpRequest match {
       case GET  (Path("/favicon.ico"))                       => staticFileProcessor ! getStaticFile(httpRequest, "favicon.ico") 
-      case GET  (PathSegments("metric" :: metricId :: rest)) => system.actorOf(Props(new MetricProcessor)) ! (httpRequest, metricId, rest)
-      case GET  (PathSegments("trail" :: messageId :: Nil))  => system.actorOf(Props(new TrailProcessor(database))) ! (httpRequest, decode(messageId, "UTF-8"))
-      case POST (Path("/event"))                             => system.actorOf(Props(new EventProcessor(database))) ! httpRequest
+      case GET  (PathSegments("metric" :: metricId :: rest)) => actor(new MetricProcessor(database)) ! (httpRequest, metricId, rest)
+      case GET  (PathSegments("trail" :: messageId :: Nil))  => actor(new TrailProcessor(database)) ! (httpRequest, decode(messageId, "UTF-8"))
+      case POST (Path("/event"))                             => actor(new EventProcessor(database)) ! httpRequest
     }
   })
 
   val webServer = new WebServer(webServerConfig, routes)
+  
+  private def actor(construction: => Actor): ActorRef = system.actorOf(Props(construction))
   
   private def getStaticFile(context: HttpRequestProcessingContext, path: String): StaticFileRequest = StaticFileRequest(
     context, StaticFileDir, new File(StaticFileDir, path), new File(System.getProperty("java.io.tmpdir"))
