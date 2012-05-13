@@ -41,14 +41,19 @@ object metricsTest extends IntegrationTest {
     // c1:     750
     // c1->c2: 400
     // c2:     300
-    check("/metric/average-latency", Some("startTime=" + encode("1970-01-01T00:00:02.000+0000", "UTF-8") + "&endTime=" + encode("1970-01-01T00:00:03.000+0000", "UTF-8")))
+    val times = Some("startTime=" + encode("1970-01-01T00:00:02.000+0000", "UTF-8") + "&endTime=" + encode("1970-01-01T00:00:03.000+0000", "UTF-8"))
+    check("/metric/average-latency", times)
     // expected latencies:
     // c2:     100
+    check("/metric/throughput", times)
+    // expected throughputs:
+    // c1: 1.0
+    // c2: 2.0
   }
 
   def check(path: String, query: Option[String] = None) = {
     val response = responseTo(path, query)
-    println("response for /metric/average-latency: " + response + "\n" + EntityUtils.toString(response.getEntity))
+    println("response for " + path + "?" + query.getOrElse("") + ": " + response + "\n" + EntityUtils.toString(response.getEntity))
   }
   
   def responseTo(path: String, query: Option[String] = None) = {

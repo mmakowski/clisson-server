@@ -30,7 +30,6 @@ trait IntegrationTest {
     deleteIfExists(dbBase + ".trace.db")
   }
   
-  // TODO: separate JVM would be more realistic
   def startServer(args: Array[String]): ServerApplication = {
     val server = SockoApplication
     server.start()

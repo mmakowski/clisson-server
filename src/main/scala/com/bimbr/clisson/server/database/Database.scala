@@ -24,6 +24,7 @@ class Database(val connector: Connector) extends Actor {
   def receive = {
     case Insert(obj)                   => insert(obj)
     case GetAverageLatency(start, end) => sender ! (conn getAverageLatency (start, end))
+    case GetThroughput(start, end)     => sender ! (conn getThroughput (start, end))
     case GetTrail(msgId)               => sender ! (conn getTrail msgId)
     case TrimEventsBefore(cutOffTime)  => sender ! (conn trimEventsBefore cutOffTime)
   }

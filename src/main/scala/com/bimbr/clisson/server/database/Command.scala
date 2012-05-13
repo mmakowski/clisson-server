@@ -21,6 +21,12 @@ case class Insert[T <: StandaloneObject](obj: T) extends Command
  */
 case class GetAverageLatency(startTime: Option[Date], endTime: Option[Date]) extends Command
 /**
+ * @param startTime the start of time window for metric calculation
+ * @param endTime the end of time window for metric calculation 
+ * @since 1.0.0
+ */
+case class GetThroughput(startTime: Date, endTime: Date) extends Command
+/**
  * @since 1.0.0
  */
 case class GetTrail(messageId: String) extends Command

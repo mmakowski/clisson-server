@@ -128,4 +128,21 @@ from (
   having min_ts <> max_ts
 )
 """
+    
+  val SelectComponentThroughputs = """
+select source, cast(cnt as double) / datediff('s', ?, ?) 
+from (
+  select source,  count(distinct message_id) as cnt
+  from events e, event_messages em
+  where e.event_id = em.event_id
+    and e.timestamp >= ?
+    and e.timestamp <= ?
+  group by source
+  union all
+  select '__etoe__', count(distinct message_id) as cnt
+  from events e, event_messages em
+  where e.event_id = em.event_id
+    and e.timestamp >= ?
+    and e.timestamp <= ?)
+"""
 }

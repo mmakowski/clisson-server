@@ -26,6 +26,10 @@ trait Connection {
    */
   def getAverageLatency(startTime: Option[Date], endTime: Option[Date]): Either[Throwable, AverageLatency]
   /**
+   * @return the throughput of messages, per component
+   */
+  def getThroughput(startTime: Date, endTime: Date): Either[Throwable, Throughput]
+  /**
    * @return the trail of specified message (if exists)
    */
   def getTrail(messageId: String): Option[Trail]

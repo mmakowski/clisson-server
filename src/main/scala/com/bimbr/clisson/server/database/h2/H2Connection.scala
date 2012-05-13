@@ -66,6 +66,32 @@ private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection
     AverageLatency(endToEndLatency, componentLatencies.asJava)
   }
   
+  def getThroughput(startTimeD: Date, endTimeD: Date) = catching(classOf[Exception]) either {
+    val startTime = new Timestamp(startTimeD.getTime)
+    val endTime = new Timestamp(endTimeD.getTime)
+    Log.debug("calculating throughput for period " + startTime + " to " + endTime)
+    
+    val select = conn prepareStatement SelectComponentThroughputs
+    select setTimestamp (1, startTime)
+    select setTimestamp (2, endTime)
+    select setTimestamp (3, startTime)
+    select setTimestamp (4, endTime)
+    select setTimestamp (5, startTime)
+    select setTimestamp (6, endTime)
+
+    val result = select.executeQuery()
+
+    var endToEndThroughput: Double = -1
+    val componentThroughputs = MMap[String, Double]()
+    while (result.next) {
+      val componentId = result getString 1
+      val latency     = result getDouble 2
+      if (componentId == "__etoe__") endToEndThroughput = latency
+      else componentThroughputs put (componentId, latency)
+    }
+    Throughput(endToEndThroughput, componentThroughputs.asJava)
+  }
+  
   // TODO: very nasty, refactor
   def getTrail(externalMessageId: String) = {
     val select = conn prepareStatement SelectEventsForExternalId
