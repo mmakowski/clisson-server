@@ -11,7 +11,6 @@ sealed trait Metric
  *   "endToEndLatency": 1280, 
  *   "componentLatencies": {
  *     "c1":     750,
- *     "c1->c2": 400,
  *     "c2":     150
  *   }
  * )
