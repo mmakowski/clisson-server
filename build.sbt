@@ -25,7 +25,7 @@ libraryDependencies ++= Seq(
   "junit"                      % "junit"                 % "4.10"           % "test,it", 
   "org.apache.httpcomponents"  % "httpclient"            % "4.1.3"          % "test,it",
   "org.slf4j"                  % "slf4j-api"             % "1.6.4"          % "test,it",
-  "org.specs2"                %% "specs2"                % "1.8.2"          % "test,it"
+  "org.specs2"                %% "specs2"                % "1.9"            % "test,it"
 )
 
 scalacOptions ++= Seq("-deprecation", "-unchecked")
@@ -33,6 +33,8 @@ scalacOptions ++= Seq("-deprecation", "-unchecked")
 seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 
 mainClass in oneJar := Some("com.bimbr.clisson.server.ClissonServerApp")
+
+parallelExecution in IntegrationTest := false
 
 filesToInclude in zip := Seq(
   "src/main/distributables/clisson-server"       -> "clisson-server",

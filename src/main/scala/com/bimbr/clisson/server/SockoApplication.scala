@@ -40,17 +40,17 @@ object SockoApplication extends ServerApplication {
   )
   
   private val          StaticFileDir = new File("static")
-  private val          system = ActorSystem("clisson-server");
+  private lazy val     system = ActorSystem("clisson-server");
   private implicit val timeout = Timeout(10 seconds)
-  private val          database = system.actorOf(databaseActorType, name = "database")
-  private val          staticFileProcessor = system.actorOf(Props[StaticFileProcessor].
+  private lazy val     database = system.actorOf(databaseActorType, name = "database")
+  private lazy val     staticFileProcessor = system.actorOf(Props[StaticFileProcessor].
                                                             withRouter(FromConfig()).
                                                             withDispatcher("pinned-dispatcher"), name = "static-file-router")
   
   /**
    * Defines how HTTP requests to different paths are handled.
    */
-  val routes = Routes({
+  private lazy val routes = Routes({
     case HttpRequest(httpRequest) => httpRequest match {
       case GET  (Path("/favicon.ico"))                       => staticFileProcessor ! getStaticFile(httpRequest, "favicon.ico") 
       case GET  (PathSegments("metric" :: metricId :: rest)) => actor(new MetricProcessor(database)) ! (httpRequest, metricId, rest)
@@ -59,7 +59,7 @@ object SockoApplication extends ServerApplication {
     }
   })
 
-  val webServer = new WebServer(webServerConfig, routes)
+  private lazy val webServer = new WebServer(webServerConfig, routes)
   
   private def actor(construction: => Actor): ActorRef = system.actorOf(Props(construction))
   

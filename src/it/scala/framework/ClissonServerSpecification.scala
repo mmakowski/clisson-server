@@ -14,12 +14,14 @@ import com.bimbr.clisson.server.{ ServerApplication, SockoApplication }
 
 trait ClissonServerSpecification extends Specification {
   val serverConfig = "tests/" + getClass.getSimpleName + "-server.properties"
+    System.setProperty("config", serverConfig)
+    val server = SockoApplication
   
   def withServer(test: => Result): Result = {
     deleteDatabase()
-    val server = startServer()
+    startServer()
     val result = test
-    stopServer(server)
+    stopServer()
     result
   }
   
@@ -33,17 +35,12 @@ trait ClissonServerSpecification extends Specification {
     deleteIfExists(dbBase + ".trace.db")
   }
   
-  private def startServer(): ServerApplication = {
-    val origConfig = System.getProperty("config")
-    System.setProperty("config", serverConfig)
-    val server = SockoApplication
+  def startServer() = {
     server.start()
     waitUntilServerStarted()
-    //System.setProperty("config", origConfig)
-    server
   }
   
-  def stopServer(server: ServerApplication): Unit = server.stop()
+  def stopServer(): Unit = server.stop()
 
   def waitUntilServerStarted(): Unit = 
     // TODO: poll
@@ -56,9 +53,12 @@ trait ClissonServerSpecification extends Specification {
     }
   }
   
-  def trail(msgId: String) = {
+  def trail(msgId: String) = responseTo("/trail/" + msgId)
+  
+  def responseTo(path: String, query: Option[String] = None) = {
     val client = new DefaultHttpClient
-    val request = new HttpGet(URIUtils.createURI("http", "localhost", 9000, "/trail/" + msgId, "", null))
+    val request = new HttpGet(URIUtils.createURI("http", "localhost", 9000, path, query.getOrElse(""), null))
     client.execute(request)
   }
+  
 }

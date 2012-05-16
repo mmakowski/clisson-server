@@ -3,16 +3,12 @@ package tests
 import java.net.URLEncoder
 import com.bimbr.clisson.client.RecorderFactory
 import org.junit.runner.RunWith
-import org.specs2._
 import org.specs2.runner.JUnitRunner
 
 
 @RunWith(classOf[JUnitRunner])
 class UrlEncodingSpec extends framework.ClissonServerSpecification { def is =
-  "id in GET /trail/id is URL-decoded" ! urlDecode
-  
-    
-  def urlDecode = withServer {
+  "id in GET /trail/id is URL-decoded" ! withServer {
     val idWithSpecialChars = "SWAPTION|124100P/14"
     val record = RecorderFactory.getRecorder()
     record.checkpoint(idWithSpecialChars, "test")
