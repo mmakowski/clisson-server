@@ -15,7 +15,7 @@ import com.bimbr.clisson.server.{ ServerApplication, SockoApplication }
 trait ClissonServerSpecification extends Specification {
   val serverConfig = "tests/" + getClass.getSimpleName + "-server.properties"
     System.setProperty("config", serverConfig)
-    val server = SockoApplication
+    val server = new SockoApplication()
   
   def withServer(test: => Result): Result = {
     deleteDatabase()

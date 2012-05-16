@@ -34,6 +34,8 @@ seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 
 mainClass in oneJar := Some("com.bimbr.clisson.server.ClissonServerApp")
 
+fork in (IntegrationTest, run) := true
+
 parallelExecution in IntegrationTest := false
 
 filesToInclude in zip := Seq(

@@ -28,7 +28,7 @@ import org.mashupbots.socko.processors.StaticFileRequest
  * @since 1.0.0
  * @author mmakowski
  */
-object SockoApplication extends ServerApplication {
+class SockoApplication extends ServerApplication {
   // get a logger to initialise logging system before other components require it to avoid http://www.slf4j.org/codes.html#substituteLogger
   LoggerFactory.getLogger("SockoApplication")
   private var isRunning = false
@@ -80,7 +80,7 @@ object SockoApplication extends ServerApplication {
   def start() = {
     webServer.start()
     Runtime.getRuntime.addShutdownHook(new Thread("app-shutdown") {
-      override def run { SockoApplication.stop() }
+      override def run { SockoApplication.this.stop() }
     })
     isRunning = true
   }

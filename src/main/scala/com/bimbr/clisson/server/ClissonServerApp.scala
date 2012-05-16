@@ -7,5 +7,5 @@ package com.bimbr.clisson.server
  * @since 1.0.0
  */
 object ClissonServerApp {
-  def main(args: Array[String]) = SockoApplication.start()
+  def main(args: Array[String]) = new SockoApplication().start()
 }
