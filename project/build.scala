@@ -30,5 +30,5 @@ object ClissonServerBuild extends Build {
   
   lazy val root = Project(id       = "clisson-server",
                           base     = file("."),
-                          settings = Project.defaultSettings ++ zipSettings ++ publishSettings)
+                          settings = Project.defaultSettings ++ Defaults.itSettings ++ zipSettings ++ publishSettings).configs(IntegrationTest)
 }

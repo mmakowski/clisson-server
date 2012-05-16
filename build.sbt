@@ -20,13 +20,12 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka"          % "akka-actor"            % "2.0.1",
   "commons-configuration"      % "commons-configuration" % "1.8",
   "org.mashupbots.socko"      %% "socko-webserver"       % "0.1.0",
-  "com.bimbr"                  % "clisson-client"        % "0.3.0"          % "test",  
+  "com.bimbr"                  % "clisson-client"        % "0.3.0"          % "test,it",  
   "com.typesafe.akka"          % "akka-testkit"          % "2.0.1"          % "test",
-  "junit"                      % "junit"                 % "4.10"           % "test", 
-  "log4j"                      % "log4j"                 % "1.2.16"         % "test",
-  "org.apache.httpcomponents"  % "httpclient"            % "4.1.3"          % "test",
-  "org.slf4j"                  % "slf4j-api"             % "1.6.4"          % "test",
-  "org.specs2"                %% "specs2"                % "1.8.2"          % "test"
+  "junit"                      % "junit"                 % "4.10"           % "test,it", 
+  "org.apache.httpcomponents"  % "httpclient"            % "4.1.3"          % "test,it",
+  "org.slf4j"                  % "slf4j-api"             % "1.6.4"          % "test,it",
+  "org.specs2"                %% "specs2"                % "1.8.2"          % "test,it"
 )
 
 scalacOptions ++= Seq("-deprecation", "-unchecked")
