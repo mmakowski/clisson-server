@@ -42,6 +42,8 @@ private[h2] class H2Connection(val conn: java.sql.Connection) extends Connection
   if (!isInitialised) initialise()
   // TODO: upgrade schema if required
 
+  def close() = conn.close()
+  
   def getAverageLatency(startTimeOpt: Option[Date], endTimeOpt: Option[Date]) = catching(classOf[Exception]) either {
     val startTime = new Timestamp(startTimeOpt.map(_.getTime).getOrElse(0L))
     val endTime = new Timestamp(endTimeOpt.map(_.getTime).getOrElse(Long.MaxValue))

@@ -22,6 +22,10 @@ trait Connector {
  */
 trait Connection {
   /**
+   * Closes this connection and release underlying database resources. 
+   */
+  def close(): Unit
+  /**
    * @return the average latency of messages, per component
    */
   def getAverageLatency(startTime: Option[Date], endTime: Option[Date]): Either[Throwable, AverageLatency]

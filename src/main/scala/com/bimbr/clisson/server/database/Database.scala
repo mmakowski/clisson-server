@@ -33,4 +33,6 @@ class Database(val connector: Connector) extends Actor {
     case event: Event => conn insertEvent event
     case _            => Log.error("unsupported type of object to insert: " + obj)
   }
+  
+  override def postStop(): Unit = conn.close()
 }
