@@ -9,7 +9,7 @@ import scala.util.control.Exception._
 import akka.actor.Actor
 import com.bimbr.clisson.protocol._
 import com.bimbr.clisson.server.database._
-import com.bimbr.clisson.server.config.Config
+import com.typesafe.config.Config
 import org.slf4j.LoggerFactory
 
 /**
@@ -24,7 +24,9 @@ class H2Connector(config: Config) extends Connector {
 
   Class forName ("org.h2.Driver")
   
-  def connect() = config(DbPathProperty).toRight(DbPathProperty + " is not defined in " + config).fold(Left(_), p => Right(newH2Connection(p)))
+  def connect() = catching(classOf[Exception]) either { config.getString(DbPathProperty) } fold (
+      e => Left("error when reading " + DbPathProperty + " from " + config + ": " + e.getMessage), 
+      p => Right(newH2Connection(p)))
   
   private def newH2Connection(dbPath: String): H2Connection = {
     Log.info("creating H2 connection to database at " + dbPath)

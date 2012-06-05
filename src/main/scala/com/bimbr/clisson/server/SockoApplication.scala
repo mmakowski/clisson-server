@@ -2,6 +2,7 @@ package com.bimbr.clisson.server
 
 import java.io.File
 import java.net.URLDecoder.decode
+import scala.collection.JavaConverters._
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.duration._
@@ -12,7 +13,7 @@ import com.bimbr.clisson.protocol.{ Event, Trail }
 import com.bimbr.clisson.protocol.Json.fromJson
 import com.bimbr.clisson.protocol.Types.classFor
 import com.bimbr.clisson.server.database.{ Database, Insert, GetTrail }
-import com.bimbr.clisson.server.config.Config
+import com.typesafe.config.{ Config, ConfigFactory }
 import com.bimbr.clisson.server.socko._
 import org.jboss.netty.handler.codec.http.HttpResponseStatus.{ ACCEPTED, BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND }
 import org.mashupbots.socko.context.HttpRequestProcessingContext
@@ -36,13 +37,13 @@ class SockoApplication extends ServerApplication {
   private lazy val config = loadConfig()
   private lazy val webServerConfig = WebServerConfig(
     serverName = "ClissonWebServer",
-    port       = Integer.parseInt(config("http.port").getOrElse("9000"))
+    port       = config.getInt("http.port")
   )
-  
+    
   private val          StaticFileDir = new File("static")
   private lazy val     system = ActorSystem("clisson-server");
   private implicit val timeout = Timeout(10 seconds)
-  private lazy val     database = system.actorOf(databaseActorType, name = "database")
+  private val          database = system.actorOf(databaseActorType, name = "database")
   private lazy val     staticFileProcessor = system.actorOf(Props[StaticFileProcessor].
                                                             withRouter(FromConfig()).
                                                             withDispatcher("pinned-dispatcher"), name = "static-file-router")
@@ -70,11 +71,12 @@ class SockoApplication extends ServerApplication {
   private def databaseActorType = Props(new Database(new com.bimbr.clisson.server.database.h2.H2Connector(config)))
   
   private def loadConfig(): Config = {
-    val fileName = Option(System.getProperty("config")).getOrElse("clisson-server.properties")
-    Config.fromPropertiesFile(fileName) match {
-      case Left(msg)  => throw new IllegalStateException(msg)
-      case Right(cfg) => cfg
-    }
+    val configPath = Option(System.getProperty("config")).getOrElse("clisson-server.conf")
+    ConfigFactory.parseFile(new File(configPath)).
+                  withFallback(ConfigFactory.load(configPath)).
+                  withFallback(ConfigFactory.parseMap(Map(
+        "http.port" -> "9000"
+      ).asJava)).resolve
   } 
 
   def start() = {

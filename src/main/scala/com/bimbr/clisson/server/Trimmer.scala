@@ -1,7 +1,8 @@
 package com.bimbr.clisson.server
 
 import java.util.{ Timer, TimerTask }
-import com.bimbr.clisson.server.config.Config
+import scala.collection.JavaConverters._
+import com.typesafe.config.{ Config, ConfigFactory }
 import com.bimbr.time.{ Duration }
 import org.slf4j.LoggerFactory
 
@@ -19,8 +20,8 @@ class Trimmer(val timer: Timer) {
   
   def start(config: Config) = parseConfig(config) match {
     case Left(message)                 => Log.warn(message)
-    case Right((retention, frequency)) => ()
-      timer.scheduleAtFixedRate(trimEvents(retention), 0, frequency inMillis)
+    case Right((retentionMs, frequencyMs)) => ()
+      timer.scheduleAtFixedRate(trimEvents(retentionMs), 0, frequencyMs)
   }
   
   def stop() = {
@@ -28,22 +29,22 @@ class Trimmer(val timer: Timer) {
     Log.info("cancelled database trimming")
   }
   
-  private def trimEvents(retention: Duration): TimerTask = new TimerTask {
+  private def trimEvents(retentionMs: Long): TimerTask = new TimerTask {
     def run(): Unit = {
       Log.info("TODO: trim!")
     }
   } 
   
-  private def parseConfig(config: Config): Either[String, (Duration, Duration)] = {
-    val frequency = parseDuration(config, TrimmingFrequency, "1 day") 
-    val retention = parseDuration(config, TrimEventsOlderThan, "365 days")
-    val enabled = java.lang.Boolean.parseBoolean(getWithDefault(config, TrimmingEnabled, "false"))
-    // TODO: this is nasty; use scalaz validation?
-    if (!enabled) Left("trimming is disabled")
-    else (frequency, retention) match {
-      case (Right(f), Right(r)) => Right((r, f))
-      case (Left(e1), Left(e2)) => Left(e1)
-    }
+  private def parseConfig(config: Config): Either[String, (Long, Long)] = {
+    val configWithDefaults = config.withFallback(ConfigFactory.parseMap(Map(
+        TrimmingEnabled     -> "false",
+        TrimEventsOlderThan -> "1 year",
+        TrimmingFrequency   -> "1 day"
+        ).asJava))
+    val frequencyMs = config.getMilliseconds(TrimmingFrequency) 
+    val retentionMs = config.getMilliseconds(TrimEventsOlderThan)
+    val enabled = config.getBoolean(TrimmingEnabled)
+    if (!enabled) Left("trimming is disabled") else Right((retentionMs, frequencyMs))
     
   }
   
@@ -52,7 +53,7 @@ class Trimmer(val timer: Timer) {
     Duration.parse(durationStr).toRight("unable to parse " + key + " value " + durationStr)
   }
   
-  private def getWithDefault(config: Config, key: String, defaultValue: String): String = config(key) getOrElse {
+  private def getWithDefault(config: Config, key: String, defaultValue: String): String = Option(config.getString(key)) getOrElse {
     Log.debug(key + " is not specified in the config, using default: " + defaultValue)
     defaultValue
   }

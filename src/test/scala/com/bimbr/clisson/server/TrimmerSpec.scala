@@ -1,7 +1,7 @@
 package com.bimbr.clisson.server
 
 import java.util.{ Timer, TimerTask }
-import com.bimbr.clisson.server.config.Config
+import com.typesafe.config.Config
 import org.junit.runner.RunWith
 import org.mockito.Matchers.{ eq => meq }
 import org.specs2.execute.Result
@@ -16,22 +16,22 @@ class TrimmerSpec extends Specification with Mockito {
       there were noMoreCallsTo (timer)
     }
     "schedule trimming task at specified rate" in startTrimmerWithConfig(config(
-        enabled   = Some("true"), 
-        retention = Some("1 day"), 
-        frequency = Some("1 hour"))) { timer =>
+        enabled   = true, 
+        retention = OneDayInMs, 
+        frequency = OneHourInMs)) { timer =>
       there was one (timer).scheduleAtFixedRate(any[TimerTask], meq(0L), meq(3600000L)) toResult
     }
   }
   
-  def config(enabled: Option[String], retention: Option[String], frequency: Option[String]): Config = {
+  def config(enabled: Boolean, retention: Long, frequency: Long): Config = {
     val config = mock[Config]
-    config("trimming.enabled") returns enabled
-    config("trimming.trimEventsOlderThan") returns retention
-    config("trimming.frequency") returns frequency
+    config.getBoolean("trimming.enabled") returns enabled
+    config.getMilliseconds("trimming.trimEventsOlderThan") returns retention
+    config.getMilliseconds("trimming.frequency") returns frequency
     config
   }
   
-  val ConfigWithTrimmingDisabled = config(Some("false"), Some("1 day"), Some("1 hour"))
+  val ConfigWithTrimmingDisabled = config(false, OneDayInMs, OneHourInMs)
   
   def startTrimmerWithConfig(config: Config)(body: Timer => Result): Result = {
     val timer = mock[Timer]
@@ -39,4 +39,7 @@ class TrimmerSpec extends Specification with Mockito {
     trimmer.start(config)
     body(timer)
   }
+  
+  val OneHourInMs = 60 * 60 * 1000
+  val OneDayInMs = 24 * OneHourInMs
 }

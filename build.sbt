@@ -2,7 +2,7 @@ organization := "com.bimbr"
 
 name := "clisson-server"
 
-version := "0.3.1-SNAPSHOT"
+version := "0.4.0-SNAPSHOT"
 
 scalaVersion := "2.9.1"
 
@@ -17,8 +17,8 @@ libraryDependencies ++= Seq(
   "ch.qos.logback"             % "logback-classic"       % "1.0.2",
   "com.bimbr"                  % "clisson-protocol"      % "0.1.0",
   "com.h2database"             % "h2"                    % "1.3.158",
+  // "com.typesafe"               % "config"                % "0.4.1", -- use config embedded in akka-actor  
   "com.typesafe.akka"          % "akka-actor"            % "2.0.1",
-  "commons-configuration"      % "commons-configuration" % "1.8",
   "org.mashupbots.socko"      %% "socko-webserver"       % "0.1.0",
   "com.bimbr"                  % "clisson-client"        % "0.3.0"          % "test,it",  
   "com.typesafe.akka"          % "akka-testkit"          % "2.0.1"          % "test",
@@ -43,7 +43,7 @@ filesToInclude in zip := Seq(
   "src/main/distributables/clisson-server.cmd"   -> "clisson-server.cmd",
   "src/main/distributables/logback.xml"          -> "logback.xml",
   "src/main/static/favicon.ico"                  -> "static/favicon.ico",
-  "src/test/resources/clisson-server.properties" -> "clisson-server.properties"
+  "src/test/resources/clisson-server.conf"       -> "clisson-server.conf"
 )
 
 EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource
